@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Learning Management System - Project Plan</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #3B82F6;
+            border-bottom: 3px solid #3B82F6;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+        
+        h2 {
+            color: #10B981;
+            border-bottom: 2px solid #10B981;
+            padding-bottom: 8px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        h3 {
+            color: #F59E0B;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        
+        h4 {
+            color: #6366f1;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        code {
+            background-color: #f1f5f9;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            color: #e11d48;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9em;
+        }
+        
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        
+        .highlight {
+            background-color: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .tech-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .feature-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .course-module {
+            background: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .phase-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .phase {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .phase::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid #f59e0b;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+        
+        .api-endpoint {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 5px 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9em;
+        }
+        
+        .endpoint-method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .get { background-color: #10b981; }
+        .post { background-color: #3b82f6; }
+        .put { background-color: #f59e0b; }
+        .delete { background-color: #ef4444; }
+        
+        .color-palette {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .color-item {
+            text-align: center;
+        }
+        
+        .color-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .primary { background-color: #3B82F6; }
+        .secondary { background-color: #10B981; }
+        .accent { background-color: #F59E0B; }
+        .background { background-color: #F8FAFC; }
+        .text { background-color: #1E293B; }
+        .success { background-color: #10B981; }
+        .warning { background-color: #F59E0B; }
+        .error { background-color: #EF4444; }
+        
+        @media print {
+            body { background-color: white; }
+            .container { box-shadow: none; }
+            .feature-card:hover { transform: none; box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IT Learning Management System (LMS)</h1>
+        <h2>Project Plan & Technical Specifications</h2>
+        
+        <h2>📋 Project Overview</h2>
+        <p>A comprehensive Learning Management System designed specifically for IT students, featuring separate dashboards for students and tutors, course management, assignment grading, and multimedia learning materials. The system will support courses in web development, UI/UX design, data science, video editing, and graphics design.</p>
+        
+        <h2>🛠️ Technology Stack</h2>
+        <div class="tech-stack">
+            <div class="tech-item">React.js<br><small>Frontend Framework</small></div>
+            <div class="tech-item">Node.js<br><small>Backend Runtime</small></div>
+            <div class="tech-item">Express.js<br><small>Web Framework</small></div>
+            <div class="tech-item">MongoDB<br><small>Database</small></div>
+            <div class="tech-item">JWT<br><small>Authentication</small></div>
+            <div class="tech-item">Tailwind CSS<br><small>Styling</small></div>
+        </div>
+        
+        <h2>👥 User Roles & Permissions</h2>
+        
+        <h3>🎓 Student Dashboard Features</h3>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>📚 Course Management</h4>
+                <ul>
+                    <li>Browse and enroll in available courses</li>
+                    <li>Track progress through course modules</li>
+                    <li>Access learning materials and resources</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>📝 Assignment System</h4>
+                <ul>
+                    <li>Submit assignments and projects</li>
+                    <li>View grades and feedback from tutors</li>
+                    <li>Track submission deadlines</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>📊 Progress Analytics</h4>
+                <ul>
+                    <li>Visual progress tracking</li>
+                    <li>Completion statistics</li>
+                    <li>Certificate generation</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>💬 Communication</h4>
+                <ul>
+                    <li>Participate in course discussions</li>
+                    <li>Direct messaging with tutors</li>
+                    <li>Receive announcements</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h3>👨‍🏫 Tutor Dashboard Features</h3>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>📖 Course Creation</h4>
+                <ul>
+                    <li>Create and manage course content</li>
+                    <li>Organize content into structured modules</li>
+                    <li>Upload and organize learning materials</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>✅ Grading System</h4>
+                <ul>
+                    <li>Review and grade student submissions</li>
+                    <li>Provide detailed feedback</li>
+                    <li>Manage and export student grades</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>📈 Analytics & Monitoring</h4>
+                <ul>
+                    <li>Track individual student progress</li>
+                    <li>View course analytics and engagement</li>
+                    <li>Generate progress reports</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <h4>📢 Communication Tools</h4>
+                <ul>
+                    <li>Send announcements and updates</li>
+                    <li>Provide feedback and support</li>
+                    <li>Manage course discussions</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h2>📚 Course Categories & Modules</h2>
+        
+        <div class="course-module">
+            <h3>🌐 Web Development</h3>
+            <ul>
+                <li><strong>Module 1:</strong> HTML & CSS Fundamentals</li>
+                <li><strong>Module 2:</strong> JavaScript Basics</li>
+                <li><strong>Module 3:</strong> React.js Development</li>
+                <li><strong>Module 4:</strong> Node.js Backend Development</li>
+                <li><strong>Module 5:</strong> Database Integration</li>
+                <li><strong>Module 6:</strong> Deployment & DevOps</li>
+            </ul>
+        </div>
+        
+        <div class="course-module">
+            <h3>🎨 UI/UX Design</h3>
+            <ul>
+                <li><strong>Module 1:</strong> Design Principles & Theory</li>
+                <li><strong>Module 2:</strong> Figma & Design Tools</li>
+                <li><strong>Module 3:</strong> User Research & Testing</li>
+                <li><strong>Module 4:</strong> Prototyping & Wireframing</li>
+                <li><strong>Module 5:</strong> Design Systems</li>
+                <li><strong>Module 6:</strong> Portfolio Development</li>
+            </ul>
+        </div>
+        
+        <div class="course-module">
+            <h3>📊 Data Science</h3>
+            <ul>
+                <li><strong>Module 1:</strong> Python Fundamentals</li>
+                <li><strong>Module 2:</strong> Data Analysis with Pandas</li>
+                <li><strong>Module 3:</strong> Data Visualization</li>
+                <li><strong>Module 4:</strong> Machine Learning Basics</li>
+                <li><strong>Module 5:</strong> Statistical Analysis</li>
+                <li><strong>Module 6:</strong> Data Science Projects</li>
+            </ul>
+        </div>
+        
+        <div class="course-module">
+            <h3>🎬 Video Editing</h3>
+            <ul>
+                <li><strong>Module 1:</strong> Video Production Basics</li>
+                <li><strong>Module 2:</strong> Adobe Premiere Pro</li>
+                <li><strong>Module 3:</strong> After Effects & Motion Graphics</li>
+                <li><strong>Module 4:</strong> Color Grading & Audio</li>
+                <li><strong>Module 5:</strong> Advanced Editing Techniques</li>
+                <li><strong>Module 6:</strong> Portfolio & Client Work</li>
+            </ul>
+        </div>
+        
+        <div class="course-module">
+            <h3>🎨 Graphics Design</h3>
+            <ul>
+                <li><strong>Module 1:</strong> Design Fundamentals</li>
+                <li><strong>Module 2:</strong> Adobe Photoshop</li>
+                <li><strong>Module 3:</strong> Adobe Illustrator</li>
+                <li><strong>Module 4:</strong> Brand Identity Design</li>
+                <li><strong>Module 5:</strong> Print & Digital Design</li>
+                <li><strong>Module 6:</strong> Freelance & Business</li>
+            </ul>
+        </div>
+        
+        <h2>🗄️ Database Schema Design</h2>
+        
+        <h3>User Model</h3>
+        <pre><code>{
+  _id: ObjectId,
+  email: String (unique),
+  password: String (hashed),
+  firstName: String,
+  lastName: String,
+  role: String (enum: ['student', 'tutor', 'admin']),
+  avatar: String,
+  bio: String,
+  skills: [String],
+  enrollmentDate: Date,
+  isActive: Boolean,
+  createdAt: Date,
+  updatedAt: Date
+}</code></pre>
+        
+        <h3>Course Model</h3>
+        <pre><code>{
+  _id: ObjectId,
+  title: String,
+  description: String,
+  category: String (enum: ['web-development', 'ui-ux', 'data-science', 'video-editing', 'graphics-design']),
+  instructor: ObjectId (ref: User),
+  thumbnail: String,
+  duration: Number (in hours),
+  difficulty: String (enum: ['beginner', 'intermediate', 'advanced']),
+  price: Number,
+  isPublished: Boolean,
+  modules: [ObjectId] (ref: Module),
+  enrolledStudents: [ObjectId] (ref: User),
+  rating: Number,
+  reviews: [ObjectId] (ref: Review),
+  createdAt: Date,
+  updatedAt: Date
+}</code></pre>
+        
+        <h3>Module Model</h3>
+        <pre><code>{
+  _id: ObjectId,
+  courseId: ObjectId (ref: Course),
+  title: String,
+  description: String,
+  order: Number,
+  content: [{
+    type: String (enum: ['video', 'pdf', 'text', 'assignment']),
+    title: String,
+    url: String,
+    duration: Number,
+    isRequired: Boolean
+  }],
+  assignments: [ObjectId] (ref: Assignment),
+  isPublished: Boolean,
+  createdAt: Date,
+  updatedAt: Date
+}</code></pre>
+        
+        <h2>🔌 API Endpoints Structure</h2>
+        
+        <h3>Authentication Routes</h3>
+        <div class="api-endpoint">
+            <span class="endpoint-method post">POST</span>/api/auth/register - User registration
+        </div>
+        <div class="api-endpoint">
+            <span class="endpoint-method post">POST</span>/api/auth/login - User login
+        </div>
+        <div class="api-endpoint">
+            <span class="endpoint-method post">POST</span>/api/auth/logout - User logout
+        </div>
+        <div class="api-endpoint">
+            <span class="endpoint-method get">GET</span>/api/auth/profile - Get user profile
+        </div>
+        <div class="api-endpoint">
+            <span class="endpoint-method put">PUT</span>/api/auth/profile - Update user profile
+        </div>
+        
+        <h3>Course Routes</h3>
+        <div class="api-endpoint">
+            <span class="endpoint-method get">GET</span>/api/courses - Get all courses
+        </div>
+        <div class="api-endpoint">
+            <span class="endpoint-method get">GET</span>/api/courses/:id - Get course by ID
+        </div>
+        <div class="api-endpoint">
+            <span class="endpoint-method post">POST</span>/api/courses - Create new course (tutor only)
+        </div>
+        <div class="api-endpoint">
+            <span class="endpoint-method put">PUT</span>/api/courses/:id - Update course (tutor only)
+        </div>
+        <div class="api-endpoint">
+            <span class="endpoint-method delete">DELETE</span>/api/courses/:id - Delete course (tutor only)
+        </div>
+        
+        <h2>🎨 UI/UX Design Guidelines</h2>
+        
+        <h3>Color Palette</h3>
+        <div class="color-palette">
+            <div class="color-item">
+                <div class="color-box primary"></div>
+                <div>Primary<br>#3B82F6</div>
+            </div>
+            <div class="color-item">
+                <div class="color-box secondary"></div>
+                <div>Secondary<br>#10B981</div>
+            </div>
+            <div class="color-item">
+                <div class="color-box accent"></div>
+                <div>Accent<br>#F59E0B</div>
+            </div>
+            <div class="color-item">
+                <div class="color-box background"></div>
+                <div>Background<br>#F8FAFC</div>
+            </div>
+            <div class="color-item">
+                <div class="color-box text"></div>
+                <div>Text<br>#1E293B</div>
+            </div>
+            <div class="color-item">
+                <div class="color-box success"></div>
+                <div>Success<br>#10B981</div>
+            </div>
+            <div class="color-item">
+                <div class="color-box warning"></div>
+                <div>Warning<br>#F59E0B</div>
+            </div>
+            <div class="color-item">
+                <div class="color-box error"></div>
+                <div>Error<br>#EF4444</div>
+            </div>
+        </div>
+        
+        <h3>Typography</h3>
+        <ul>
+            <li><strong>Primary Font:</strong> Inter (Modern, readable)</li>
+            <li><strong>Headings:</strong> Font weight 600-700</li>
+            <li><strong>Body Text:</strong> Font weight 400-500</li>
+            <li><strong>Code:</strong> Fira Code (Monospace)</li>
+        </ul>
+        
+        <h3>Component Design Principles</h3>
+        <ul>
+            <li><strong>Card-based Layout:</strong> Clean, organized content presentation</li>
+            <li><strong>Responsive Design:</strong> Mobile-first approach</li>
+            <li><strong>Accessibility:</strong> WCAG 2.1 AA compliance</li>
+            <li><strong>Micro-interactions:</strong> Smooth transitions and hover effects</li>
+            <li><strong>Consistent Spacing:</strong> 8px grid system</li>
+            <li><strong>Modern Shadows:</strong> Subtle depth with layered shadows</li>
+        </ul>
+        
+        <h2>📁 Project Structure</h2>
+        <pre><code>MIC-LMS/
+├── backend/
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── middleware/
+│   │   ├── utils/
+│   │   └── config/
+│   ├── uploads/
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── hooks/
+│   │   ├── context/
+│   │   ├── utils/
+│   │   └── styles/
+│   ├── public/
+│   └── package.json
+├── docs/
+├── README.md
+└── docker-compose.yml</code></pre>
+        
+        <h2>📅 Development Phases</h2>
+        <div class="phase-timeline">
+            <div class="phase">
+                <h3>Phase 1: Foundation (Weeks 1-2)</h3>
+                <ul>
+                    <li>Set up MERN stack project structure</li>
+                    <li>Implement authentication system</li>
+                    <li>Create basic user models and routes</li>
+                    <li>Design and implement basic UI components</li>
+                </ul>
+            </div>
+            <div class="phase">
+                <h3>Phase 2: Core Features (Weeks 3-4)</h3>
+                <ul>
+                    <li>Implement course creation and management</li>
+                    <li>Build module and content management system</li>
+                    <li>Create student enrollment functionality</li>
+                    <li>Develop basic assignment system</li>
+                </ul>
+            </div>
+            <div class="phase">
+                <h3>Phase 3: Advanced Features (Weeks 5-6)</h3>
+                <ul>
+                    <li>Implement grading and feedback system</li>
+                    <li>Add file upload and media management</li>
+                    <li>Build analytics and progress tracking</li>
+                    <li>Create discussion forums</li>
+                </ul>
+            </div>
+            <div class="phase">
+                <h3>Phase 4: Polish & Deployment (Weeks 7-8)</h3>
+                <ul>
+                    <li>UI/UX refinements and responsive design</li>
+                    <li>Performance optimization</li>
+                    <li>Security enhancements</li>
+                    <li>Deployment and testing</li>
+                </ul>
+            </div>
+        </div>
+        
+        <h2>🔑 Key Features to Implement</h2>
+        
+        <h3>Multimedia Support</h3>
+        <ul>
+            <li>YouTube video integration</li>
+            <li>PDF document viewer</li>
+            <li>Image gallery for graphics design courses</li>
+            <li>Video player for video editing courses</li>
+            <li>Interactive code editor for web development</li>
+        </ul>
+        
+        <h3>Progress Tracking</h3>
+        <ul>
+            <li>Visual progress bars</li>
+            <li>Completion percentages</li>
+            <li>Time spent tracking</li>
+            <li>Skill badges and achievements</li>
+            <li>Certificate generation</li>
+        </ul>
+        
+        <h3>Communication Tools</h3>
+        <ul>
+            <li>In-app messaging system</li>
+            <li>Discussion forums per course</li>
+            <li>Announcement system</li>
+            <li>Notification system</li>
+            <li>Email integration</li>
+        </ul>
+        
+        <h3>Assessment Tools</h3>
+        <ul>
+            <li>Multiple choice quizzes</li>
+            <li>Code submission with auto-testing</li>
+            <li>File upload assignments</li>
+            <li>Peer review system</li>
+            <li>Rubric-based grading</li>
+        </ul>
+        
+        <h2>🔒 Security Considerations</h2>
+        <ul>
+            <li>Password hashing with bcrypt</li>
+            <li>JWT token expiration and refresh</li>
+            <li>Input validation and sanitization</li>
+            <li>File upload security</li>
+            <li>Rate limiting for API endpoints</li>
+            <li>CORS configuration</li>
+            <li>Environment variable management</li>
+        </ul>
+        
+        <h2>🚀 Deployment Strategy</h2>
+        <ul>
+            <li><strong>Frontend:</strong> Vercel or Netlify</li>
+            <li><strong>Backend:</strong> Railway, Heroku, or AWS EC2</li>
+            <li><strong>Database:</strong> MongoDB Atlas</li>
+            <li><strong>File Storage:</strong> AWS S3 or Cloudinary</li>
+            <li><strong>CDN:</strong> CloudFront for media delivery</li>
+        </ul>
+        
+        <h2>📊 Success Metrics</h2>
+        <ul>
+            <li>User engagement (time spent on platform)</li>
+            <li>Course completion rates</li>
+            <li>Assignment submission rates</li>
+            <li>Tutor satisfaction scores</li>
+            <li>Student learning outcomes</li>
+            <li>Platform uptime and performance</li>
+        </ul>
+        
+        <div style="margin-top: 50px; text-align: center; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px;">
+            <h3>🎯 Ready to Build Something Amazing!</h3>
+            <p>This comprehensive plan provides the foundation for building a modern, feature-rich LMS that will serve IT students effectively while providing tutors with powerful tools for course management and student assessment.</p>
+        </div>
+    </div>
+</body>
+</html>
