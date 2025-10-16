@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLoginEndpoint } from '../../utils/endpoint';
@@ -12,10 +12,19 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { setToken, loadUser } = useAuth();
-  const loginEndpoint = useLoginEndpoint();
+  const { setToken, authenticate, loadUser, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const endpointLogin = useLoginEndpoint();
+
+  // If already authenticated, redirect by role
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const role = user.role;
+      const target = role === 'tutor' ? '/tutor/dashboard' : '/student/dashboard';
+      navigate(target, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const from = location.state?.from?.pathname || '/dashboard';
 
@@ -32,15 +41,17 @@ const Login = () => {
     setLoading(true);
     setError('');
 
-    const result = await loginEndpoint({ email: formData.email, password: formData.password });
+    const result = await endpointLogin({ email: formData.email, password: formData.password });
     if (result.success && result.token) {
-      setToken(result.token);
-      const userData = await loadUser();
-      const role = userData?.role || (userData?.user && userData.user.role);
+      // set full auth state immediately to avoid ProtectedRoute bounce
+      authenticate(result.user, result.token);
+      const role = result.user?.role;
       const target = role === 'tutor' ? '/tutor/dashboard' : '/student/dashboard';
       navigate(target, { replace: true });
+      // then refresh user details from backend in background
+      loadUser();
     } else {
-      setError(result.error);
+      setError(result.error || 'Login failed');
     }
     
     setLoading(false);

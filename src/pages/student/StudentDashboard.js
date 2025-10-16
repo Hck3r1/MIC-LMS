@@ -16,7 +16,7 @@ import {
 
 const StudentDashboard = () => {
   const { user } = useAuth();
-  const { courses, fetchCourses } = useCourses();
+  const { courses, fetchCourses, enrollInCourse, unenrollFromCourse, getAuthMe, getStudentOverview } = useCourses();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalCourses: 0,
@@ -26,133 +26,86 @@ const StudentDashboard = () => {
     averageGrade: 0,
     totalStudyTime: 0
   });
+  const [enrollingId, setEnrollingId] = useState(null);
+  const handleCertificate = async (courseId) => {
+    window.location.href = `${process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api'}/certificates/${courseId}`;
+  };
 
-  // Mock data for demonstration
-  const [mockActivities] = useState([
-    {
-      type: 'course_enrolled',
-      courseName: 'Full-Stack React Development',
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
-    },
-    {
-      type: 'module_completed',
-      courseName: 'JavaScript Basics',
-      moduleName: 'Functions and Scope',
-      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000) // 4 hours ago
-    },
-    {
-      type: 'assignment_submitted',
-      assignmentName: 'HTML/CSS Portfolio Project',
-      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000) // 6 hours ago
-    },
-    {
-      type: 'assignment_graded',
-      assignmentName: 'JavaScript Fundamentals Quiz',
-      grade: 95,
-      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000) // 1 day ago
-    },
-    {
-      type: 'video_watched',
-      courseName: 'UI/UX Design Principles',
-      videoName: 'Introduction to User Experience',
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
-    }
-  ]);
-
-  const [mockAssignments] = useState([
-    {
-      _id: '1',
-      title: 'React Component Project',
-      courseName: 'Full-Stack React Development',
-      courseId: 'course1',
-      dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day from now
-      status: 'pending',
-      maxPoints: 100
-    },
-    {
-      _id: '2',
-      title: 'CSS Grid Layout Exercise',
-      courseName: 'Web Development Fundamentals',
-      courseId: 'course2',
-      dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
-      status: 'pending',
-      maxPoints: 50
-    },
-    {
-      _id: '3',
-      title: 'JavaScript Algorithms',
-      courseName: 'JavaScript Advanced',
-      courseId: 'course3',
-      dueDate: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day overdue
-      status: 'pending',
-      maxPoints: 75
-    }
-  ]);
-
-  const [mockProgressData] = useState([
-    { name: 'Week 1', progress: 20 },
-    { name: 'Week 2', progress: 45 },
-    { name: 'Week 3', progress: 65 },
-    { name: 'Week 4', progress: 80 },
-    { name: 'Week 5', progress: 95 }
-  ]);
-
-  const [mockCourseData] = useState([
-    { name: 'React', progress: 85 },
-    { name: 'JavaScript', progress: 70 },
-    { name: 'CSS', progress: 60 },
-    { name: 'Node.js', progress: 45 }
-  ]);
-
-  const [mockCategoryData] = useState([
-    { name: 'Web Development', value: 45 },
-    { name: 'UI/UX Design', value: 30 },
-    { name: 'Data Science', value: 15 },
-    { name: 'Other', value: 10 }
-  ]);
+  const [activities, setActivities] = useState([]);
+  const [upcomingAssignments, setUpcomingAssignments] = useState([]);
+  const [progressData, setProgressData] = useState([]);
+  const [courseBreakdown, setCourseBreakdown] = useState([]);
+  const [categoryBreakdown, setCategoryBreakdown] = useState([]);
 
   useEffect(() => {
-    // Simulate loading user courses and stats
     const loadDashboardData = async () => {
       setLoading(true);
       try {
-        // Fetch user's enrolled courses
-        await fetchCourses(1, { enrolled: true });
-        
-        // Calculate stats (mock data for now)
-        setStats({
-          totalCourses: 5,
-          completedCourses: 2,
-          totalModules: 25,
-          completedModules: 12,
-          averageGrade: 87.5,
-          totalStudyTime: 45.5
-        });
+        await fetchCourses(1, {});
+        const me = await getAuthMe();
+        if (me.success && me.me) {
+          const analytics = await getStudentOverview(me.me.id || me.me._id);
+          if (analytics.success) {
+            setStats(prev => ({ ...prev, ...analytics.data }));
+            // Optional derived visuals from analytics
+            setProgressData((analytics.data.weeklyProgress || []).map((p, i) => ({ name: `Week ${i+1}`, progress: p })));
+            setCourseBreakdown((analytics.data.courseBreakdown || []).map(c => ({ name: c.name, progress: c.progress })));
+            setCategoryBreakdown((analytics.data.categoryBreakdown || []).map(c => ({ name: c.name, value: c.value })));
+          } else {
+            const enrolled = Array.isArray(me.me.enrolledCourses) ? me.me.enrolledCourses : [];
+            setStats(prev => ({ ...prev, totalCourses: enrolled.length }));
+          }
+          // Activities and assignments could be fetched via endpoints when available; keep empty otherwise
+          setActivities([]);
+          setUpcomingAssignments([]);
+        }
       } catch (error) {
         console.error('Error loading dashboard data:', error);
       } finally {
         setLoading(false);
       }
     };
-
     loadDashboardData();
-  }, [fetchCourses]);
+  }, [fetchCourses, getAuthMe, getStudentOverview]);
 
   const handleEnroll = async (courseId) => {
     try {
-      // This would call the enroll API
-      console.log('Enrolling in course:', courseId);
+      setEnrollingId(courseId);
+      const res = await enrollInCourse(courseId);
+      if (res.success) {
+        // Refresh published list and stats
+        await fetchCourses(1, {});
+        const me = await getAuthMe();
+        if (me.success && me.me) {
+          const enrolled = Array.isArray(me.me.enrolledCourses) ? me.me.enrolledCourses : [];
+          setStats(prev => ({ ...prev, totalCourses: enrolled.length }));
+        }
+      }
     } catch (error) {
       console.error('Error enrolling in course:', error);
+      alert(error?.error || 'Failed to enroll');
+    } finally {
+      setEnrollingId(null);
     }
   };
 
   const handleUnenroll = async (courseId) => {
     try {
-      // This would call the unenroll API
-      console.log('Unenrolling from course:', courseId);
+      setEnrollingId(courseId);
+      const res = await unenrollFromCourse(courseId);
+      if (res.success) {
+        await fetchCourses(1, {});
+        const me = await getAuthMe();
+        if (me.success && me.me) {
+          const enrolled = Array.isArray(me.me.enrolledCourses) ? me.me.enrolledCourses : [];
+          setStats(prev => ({ ...prev, totalCourses: enrolled.length }));
+        }
+      }
     } catch (error) {
       console.error('Error unenrolling from course:', error);
+      alert(error?.error || 'Failed to unenroll');
+    } finally {
+      setEnrollingId(null);
     }
   };
 
@@ -232,27 +185,25 @@ const StudentDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Left Column - Charts */}
           <div className="lg:col-span-2 space-y-6">
-            <ProgressChart data={mockProgressData} type="line" />
+            <ProgressChart data={progressData} type="line" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ProgressChart data={mockCourseData} type="bar" />
-              <ProgressChart data={mockCategoryData} type="pie" />
+              <ProgressChart data={courseBreakdown} type="bar" />
+              <ProgressChart data={categoryBreakdown} type="pie" />
             </div>
           </div>
 
           {/* Right Column - Activity and Assignments */}
           <div className="space-y-6">
-            <UpcomingAssignments assignments={mockAssignments} />
-            <RecentActivity activities={mockActivities} />
+            <UpcomingAssignments assignments={upcomingAssignments} />
+            <RecentActivity activities={activities} />
           </div>
         </div>
 
         {/* Enrolled Courses */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">My Courses</h2>
-            <button className="btn-outline">
-              Browse All Courses
-            </button>
+            <h2 className="text-2xl font-bold text-gray-900">Courses</h2>
+            <button className="btn-outline" onClick={() => window.location.assign('/courses')}>Browse All Courses</button>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -260,12 +211,17 @@ const StudentDashboard = () => {
               <CourseCard
                 key={course._id}
                 course={course}
-                enrollment={course.enrolledStudents?.find(
-                  enrollment => enrollment.student === user?._id
-                )}
+                enrollment={course.enrolledStudents?.some(enr => (enr.student?._id || enr.student) === user?._id)}
                 onEnroll={handleEnroll}
                 onUnenroll={handleUnenroll}
+                loading={enrollingId === course._id}
               />
+            ))}
+          </div>
+          {/* Certificates quick action if completed */}
+          <div className="mt-4">
+            {courses.filter(c => (c.enrolledStudents || []).some(e => (e.student?._id || e.student) === user?._id && (e.progress || 0) === 100)).map(c => (
+              <button key={c._id} className="btn-outline mr-2 mb-2" onClick={() => handleCertificate(c._id)}>Get Certificate for {c.title}</button>
             ))}
           </div>
           

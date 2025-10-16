@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCourses } from '../../contexts/CourseContext';
 import {
@@ -13,24 +13,28 @@ import {
 } from '@heroicons/react/24/outline';
 
 const CourseManagement = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const { courses, fetchCourses, deleteCourse } = useCourses();
+  const { courses, fetchInstructorCourses, deleteCourse, updateCourse } = useCourses();
   const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [publishingId, setPublishingId] = useState(null);
 
-  useEffect(() => {
-    loadCourses();
-  }, [user._id, loadCourses]);
-
-  const loadCourses = async () => {
+  const loadCourses = useCallback(async () => {
     try {
-      await fetchCourses(1, { instructor: user._id });
+      const instructorId = user?.id || user?._id;
+      if (!instructorId) return;
+      await fetchInstructorCourses(instructorId);
       setLoading(false);
     } catch (error) {
       console.error('Error loading courses:', error);
       setLoading(false);
     }
-  };
+  }, [fetchInstructorCourses, user?.id, user?._id]);
+
+  useEffect(() => {
+    loadCourses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDeleteCourse = async (courseId) => {
     if (window.confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
@@ -40,6 +44,18 @@ const CourseManagement = () => {
       } catch (error) {
         console.error('Error deleting course:', error);
       }
+    }
+  };
+
+  const handleTogglePublish = async (course) => {
+    try {
+      setPublishingId(course._id);
+      await updateCourse(course._id, { isPublished: !course.isPublished });
+      await loadCourses();
+    } catch (e) {
+      console.error('Toggle publish failed', e);
+    } finally {
+      setPublishingId(null);
     }
   };
 
@@ -67,7 +83,7 @@ const CourseManagement = () => {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">My Courses</h2>
         <button
-          onClick={() => setShowCreateModal(true)}
+          onClick={() => navigate('/tutor/create-course')}
           className="btn-primary inline-flex items-center"
         >
           <PlusIcon className="w-5 h-5 mr-2" />
@@ -83,7 +99,7 @@ const CourseManagement = () => {
             Create your first course to start teaching and sharing your knowledge with students.
           </p>
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => navigate('/tutor/create-course')}
             className="btn-primary inline-flex items-center"
           >
             <PlusIcon className="w-5 h-5 mr-2" />
@@ -167,6 +183,15 @@ const CourseManagement = () => {
                     >
                       <PencilIcon className="w-4 h-4" />
                     </Link>
+
+                    <button
+                      onClick={() => handleTogglePublish(course)}
+                      className={`btn-outline text-sm py-1 px-3 ${course.isPublished ? 'text-yellow-700' : 'text-green-700'}`}
+                      title={course.isPublished ? 'Unpublish' : 'Publish'}
+                      disabled={publishingId === course._id}
+                    >
+                      {publishingId === course._id ? 'Updating…' : (course.isPublished ? 'Unpublish' : 'Publish')}
+                    </button>
                     
                     <button
                       onClick={() => handleDeleteCourse(course._id)}
@@ -183,197 +208,9 @@ const CourseManagement = () => {
         </div>
       )}
 
-      {/* Create Course Modal */}
-      {showCreateModal && (
-        <CreateCourseModal
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={() => {
-            setShowCreateModal(false);
-            loadCourses();
-          }}
-        />
-      )}
     </div>
   );
 };
 
-// Create Course Modal Component
-const CreateCourseModal = ({ onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: '',
-    difficulty: 'beginner',
-    duration: '',
-    price: 0
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { createCourse } = useCourses();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      const result = await createCourse(formData);
-      if (result.success) {
-        onSuccess();
-      } else {
-        setError(result.error);
-      }
-    } catch (error) {
-      setError('Failed to create course');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Course</h3>
-        
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-4">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Course Title
-              </label>
-              <input
-                type="text"
-                name="title"
-                required
-                className="input-field"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="Enter course title"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                name="description"
-                required
-                rows={3}
-                className="input-field"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Describe what students will learn"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
-                </label>
-                <select
-                  name="category"
-                  required
-                  className="input-field"
-                  value={formData.category}
-                  onChange={handleChange}
-                >
-                  <option value="">Select category</option>
-                  <option value="web-development">Web Development</option>
-                  <option value="ui-ux">UI/UX Design</option>
-                  <option value="data-science">Data Science</option>
-                  <option value="video-editing">Video Editing</option>
-                  <option value="graphics-design">Graphics Design</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Difficulty
-                </label>
-                <select
-                  name="difficulty"
-                  required
-                  className="input-field"
-                  value={formData.difficulty}
-                  onChange={handleChange}
-                >
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Duration (hours)
-                </label>
-                <input
-                  type="number"
-                  name="duration"
-                  required
-                  min="1"
-                  className="input-field"
-                  value={formData.duration}
-                  onChange={handleChange}
-                  placeholder="10"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price ($)
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  min="0"
-                  className="input-field"
-                  value={formData.price}
-                  onChange={handleChange}
-                  placeholder="0"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-3 mt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-outline"
-              disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={loading}
-            >
-              {loading ? 'Creating...' : 'Create Course'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
 
 export default CourseManagement;

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '../../contexts/NotificationsContext';
 import MICLogo from './MICLogo';
 import {
   Bars3Icon,
@@ -8,15 +9,42 @@ import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
   AcademicCapIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  BellIcon
 } from '@heroicons/react/24/outline';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
+  const { unreadCount, listNotifications, markSeen, items } = useNotifications();
+  const notifItems = Array.isArray(items) ? items : [];
+  const unread = typeof unreadCount === 'number' ? unreadCount : 0;
+  const [openBell, setOpenBell] = useState(false);
+  const bellRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  useEffect(() => {
+    if (isAuthenticated) listNotifications({ unread: false });
+  }, [isAuthenticated, listNotifications]);
+
+  const toggleBell = async () => {
+    const next = !openBell;
+    setOpenBell(next);
+    if (next) await markSeen();
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!openBell) return;
+      if (bellRef.current && !bellRef.current.contains(e.target)) {
+        setOpenBell(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openBell]);
+
 
   const handleLogout = async () => {
     await logout();
@@ -102,7 +130,32 @@ const Navbar = () => {
           {/* User Menu */}
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
-              <div className="relative">
+              <div className="relative flex items-center space-x-2">
+                <div className="relative" ref={bellRef}>
+                  <button onClick={toggleBell} className="relative inline-flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900">
+                    <BellIcon className="w-5 h-5" />
+                    {unread > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1">{unread}</span>
+                    )}
+                  </button>
+                  {openBell && (
+                    <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                      <div className="p-3 border-b font-semibold">Notifications</div>
+                      <div className="max-h-80 overflow-auto">
+                        {notifItems.length === 0 ? (
+                          <div className="p-4 text-sm text-gray-600">No notifications</div>
+                        ) : (
+                          notifItems.map(n => (
+                            <div key={n._id} className={`p-3 text-sm border-b ${!n.readAt ? 'bg-gray-50' : ''}`}>
+                              <div className="font-medium text-gray-900">{n.title}</div>
+                              {n.body && <div className="text-gray-600 mt-1">{n.body}</div>}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                   className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"

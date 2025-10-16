@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, useCallback } 
 import axios from 'axios';
 
 // API Base URL
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:54112/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api';
 
 // Create Auth Context
 const AuthContext = createContext();
@@ -127,7 +127,12 @@ export const AuthProvider = ({ children }) => {
       });
 
       const { user, token } = response.data.data;
-      
+      // Set token immediately for subsequent requests in same tick
+      try {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        localStorage.setItem('token', token);
+      } catch (_) {}
+
       dispatch({
         type: 'AUTH_SUCCESS',
         payload: { user, token }
@@ -148,7 +153,12 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.post(`${API_URL}/auth/register`, userData);
 
       const { user, token } = response.data.data;
-      
+      // Set token immediately
+      try {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        localStorage.setItem('token', token);
+      } catch (_) {}
+
       dispatch({
         type: 'AUTH_SUCCESS',
         payload: { user, token }
@@ -177,6 +187,11 @@ export const AuthProvider = ({ children }) => {
   // Allow external flows (e.g., endpoint hooks) to set token
   const setToken = (token) => {
     dispatch({ type: 'SET_TOKEN', payload: token });
+  };
+
+  // Allow external flows to set full auth state immediately
+  const authenticate = (user, token) => {
+    dispatch({ type: 'AUTH_SUCCESS', payload: { user, token } });
   };
 
   // Update profile function
@@ -246,6 +261,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     setToken,
+    authenticate,
     updateProfile,
     uploadAvatar,
     changePassword,

@@ -8,7 +8,7 @@ import {
   UserIcon
 } from '@heroicons/react/24/outline';
 
-const CourseCard = ({ course, enrollment, onEnroll, onUnenroll }) => {
+const CourseCard = ({ course, enrollment, onEnroll, onUnenroll, loading }) => {
   const progress = enrollment?.progress || 0;
   const isEnrolled = !!enrollment;
 
@@ -114,12 +114,7 @@ const CourseCard = ({ course, enrollment, onEnroll, onUnenroll }) => {
         <div className="flex space-x-2">
           {isEnrolled ? (
             <>
-              <Link
-                to={`/courses/${course._id}`}
-                className="flex-1 btn-primary text-center text-sm py-2"
-              >
-                Continue Learning
-              </Link>
+              <Link to={`/courses/${course._id}/learn`} className="flex-1 btn-primary text-center text-sm py-2">Continue Learning</Link>
               <button
                 onClick={() => onUnenroll(course._id)}
                 className="btn-outline text-sm py-2 px-3"
@@ -128,12 +123,16 @@ const CourseCard = ({ course, enrollment, onEnroll, onUnenroll }) => {
               </button>
             </>
           ) : (
-            <button
-              onClick={() => onEnroll(course._id)}
-              className="flex-1 btn-primary text-sm py-2"
-            >
-              Enroll Now
-            </button>
+            <div className="flex-1 flex gap-2">
+              <button
+                onClick={() => onEnroll(course._id)}
+                className="btn-primary text-sm py-2 flex-1 disabled:opacity-60"
+                disabled={loading}
+              >
+                {loading ? 'Enrolling...' : 'Enroll Now'}
+              </button>
+              <Link to={`/courses/${course._id}/learn`} className="btn-outline text-sm py-2 px-3">Preview</Link>
+            </div>
           )}
         </div>
 

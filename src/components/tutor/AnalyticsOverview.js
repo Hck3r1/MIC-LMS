@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useCourses } from '../../contexts/CourseContext';
 import {
   UsersIcon,
   BookOpenIcon,
@@ -9,15 +11,26 @@ import {
 } from '@heroicons/react/24/outline';
 
 const AnalyticsOverview = () => {
-  // Mock data - in real app, this would come from API
-  const analytics = {
-    totalStudents: 156,
-    totalCourses: 8,
-    totalRevenue: 12500,
-    averageRating: 4.7,
-    completionRate: 78,
-    activeStudents: 89
-  };
+  const { user } = useAuth();
+  const { getTutorOverview, getTutorRecentPerformance, getTutorTopCourses } = useCourses();
+  const [overview, setOverview] = useState(null);
+  const [recent, setRecent] = useState(null);
+  const [topCourses, setTopCourses] = useState([]);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!user?._id) return;
+      const [o, r, t] = await Promise.all([
+        getTutorOverview(user._id, '30d'),
+        getTutorRecentPerformance(user._id, '30d'),
+        getTutorTopCourses(user._id, 3)
+      ]);
+      if (o.success) setOverview(o.data);
+      if (r.success) setRecent(r.data);
+      if (t.success) setTopCourses(t.data.top || []);
+    };
+    load();
+  }, [user?._id, getTutorOverview, getTutorRecentPerformance, getTutorTopCourses]);
 
   const recentStats = [
     { label: 'New Students This Month', value: 23, change: '+15%', positive: true },
@@ -75,45 +88,39 @@ const AnalyticsOverview = () => {
         <StatCard
           icon={UsersIcon}
           title="Total Students"
-          value={analytics.totalStudents}
-          subtitle={`${analytics.activeStudents} active`}
+          value={overview?.totalStudents ?? '—'}
+          subtitle={`${overview?.activeStudents ?? '—'} active`}
           color="blue"
         />
         <StatCard
           icon={BookOpenIcon}
           title="Courses Created"
-          value={analytics.totalCourses}
-          subtitle="8 published"
+          value={overview?.totalCourses ?? '—'}
+          subtitle={`${overview?.totalCourses ?? '—'} published`}
           color="primary"
         />
-        <StatCard
-          icon={ChartBarIcon}
-          title="Total Revenue"
-          value={`$${analytics.totalRevenue.toLocaleString()}`}
-          subtitle="This year"
-          color="green"
-        />
+        
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard
           icon={StarIcon}
           title="Average Rating"
-          value={analytics.averageRating}
-          subtitle="From 124 reviews"
+          value={overview?.averageRating ?? '—'}
+          subtitle={overview?.averageRating ? 'From reviews' : ''}
           color="yellow"
         />
         <StatCard
           icon={ArrowTrendingUpIcon}
           title="Completion Rate"
-          value={`${analytics.completionRate}%`}
+          value={`${overview?.completionRate ?? '—'}%`}
           subtitle="Student success rate"
           color="green"
         />
         <StatCard
           icon={ClockIcon}
           title="Active Students"
-          value={analytics.activeStudents}
+          value={overview?.activeStudents ?? '—'}
           subtitle="Last 30 days"
           color="purple"
         />
@@ -123,15 +130,14 @@ const AnalyticsOverview = () => {
       <div className="card">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">Recent Performance</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {recentStats.map((stat, index) => (
-            <TrendCard
-              key={index}
-              label={stat.label}
-              value={stat.value}
-              change={stat.change}
-              positive={stat.positive}
-            />
-          ))}
+          {recent && (
+            <>
+              <TrendCard label="New Students This Month" value={recent.newStudents.value} change={`${Math.abs(recent.newStudents.deltaPct)}%`} positive={recent.newStudents.deltaPct >= 0} />
+              <TrendCard label="Course Completions" value={recent.completions.value} change={`${Math.abs(recent.completions.deltaPct)}%`} positive={recent.completions.deltaPct >= 0} />
+              <TrendCard label="Average Grade" value={`${recent.averageGrade.value}%`} change={`${Math.abs(recent.averageGrade.deltaPct)}%`} positive={recent.averageGrade.deltaPct >= 0} />
+              <TrendCard label="Student Engagement" value={`${recent.engagement.value}`} change={`${Math.abs(recent.engagement.deltaPct)}%`} positive={recent.engagement.deltaPct >= 0} />
+            </>
+          )}
         </div>
       </div>
 
@@ -140,35 +146,17 @@ const AnalyticsOverview = () => {
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performing Courses</h3>
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-900">Full-Stack React Development</p>
-                <p className="text-xs text-gray-600">45 students • 4.8 rating</p>
+            {topCourses.map(c => (
+              <div key={c.courseId} className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{c.title}</p>
+                  <p className="text-xs text-gray-600">{c.students} students • {c.rating.toFixed(1)} rating</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-green-600">{c.completionRate}% completion</p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-green-600">92% completion</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-900">JavaScript Fundamentals</p>
-                <p className="text-xs text-gray-600">38 students • 4.6 rating</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-green-600">88% completion</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-900">CSS Grid & Flexbox</p>
-                <p className="text-xs text-gray-600">32 students • 4.7 rating</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-green-600">85% completion</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 

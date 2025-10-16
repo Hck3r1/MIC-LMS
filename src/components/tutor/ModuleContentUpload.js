@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCourses } from '../../contexts/CourseContext';
 import FileUpload from './FileUpload';
 import {
   PlusIcon,
@@ -13,6 +14,7 @@ import {
 
 const ModuleContentUpload = ({ moduleId, onContentAdded }) => {
   const { user } = useAuth();
+  const { addModuleContent } = useCourses();
   const [showAddContent, setShowAddContent] = useState(false);
   const [contentType, setContentType] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -57,15 +59,11 @@ const ModuleContentUpload = ({ moduleId, onContentAdded }) => {
         }))
       };
 
-      // In real app, this would call the API to add content to module
-      console.log('Adding content to module:', moduleId, contentData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (onContentAdded) {
-        onContentAdded(contentData);
+      const res = await addModuleContent(moduleId, contentData);
+      if (!res.success) {
+        throw new Error(res.error || 'Failed to add content');
       }
+      if (onContentAdded) onContentAdded(res.module);
 
       // Reset form
       setFormData({
@@ -80,7 +78,7 @@ const ModuleContentUpload = ({ moduleId, onContentAdded }) => {
       setShowAddContent(false);
       setContentType('');
     } catch (error) {
-      setError('Failed to add content. Please try again.');
+      setError(error.message || 'Failed to add content. Please try again.');
     } finally {
       setLoading(false);
     }

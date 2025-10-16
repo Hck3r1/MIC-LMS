@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useCourses } from '../contexts/CourseContext';
+import { useAuth } from '../contexts/AuthContext';
 import CourseCard from '../components/student/CourseCard';
 
 const Courses = () => {
-  const { courses, fetchCourses, loading } = useCourses();
+  const { courses, fetchCourses, enrollInCourse, unenrollFromCourse, getAuthMe, loading } = useCourses();
+  const { user } = useAuth();
+  const [enrollingId, setEnrollingId] = useState(null);
   const [filters, setFilters] = useState({
     category: '',
     difficulty: '',
@@ -19,6 +22,38 @@ const Courses = () => {
       ...filters,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleEnroll = async (courseId) => {
+    try {
+      setEnrollingId(courseId);
+      const res = await enrollInCourse(courseId);
+      if (res.success) {
+        await fetchCourses(1, filters);
+        await getAuthMe();
+      }
+    } catch (e) {
+      console.error('Enroll failed', e);
+      alert('Failed to enroll');
+    } finally {
+      setEnrollingId(null);
+    }
+  };
+
+  const handleUnenroll = async (courseId) => {
+    try {
+      setEnrollingId(courseId);
+      const res = await unenrollFromCourse(courseId);
+      if (res.success) {
+        await fetchCourses(1, filters);
+        await getAuthMe();
+      }
+    } catch (e) {
+      console.error('Unenroll failed', e);
+      alert('Failed to unenroll');
+    } finally {
+      setEnrollingId(null);
+    }
   };
 
   return (
@@ -88,8 +123,14 @@ const Courses = () => {
               <CourseCard
                 key={course._id}
                 course={course}
-                onEnroll={() => console.log('Enroll clicked')}
-                onUnenroll={() => console.log('Unenroll clicked')}
+                enrollment={course.enrolledStudents?.some((enr) => {
+                  const enrolledId = (enr.student && (enr.student._id || enr.student.id)) || enr.student;
+                  const currentUserId = user?._id || user?.id;
+                  return currentUserId && enrolledId && String(enrolledId) === String(currentUserId);
+                })}
+                onEnroll={handleEnroll}
+                onUnenroll={handleUnenroll}
+                loading={enrollingId === course._id}
               />
             ))}
           </div>
