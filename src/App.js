@@ -27,6 +27,7 @@ import EditCourse from './pages/tutor/EditCourse';
 import AssignmentsManage from './pages/tutor/AssignmentsManage';
 import AssignmentSubmit from './pages/student/AssignmentSubmit';
 import StudentGrades from './pages/student/StudentGrades';
+import StudentCourses from './pages/student/StudentCourses';
 import QuizTake from './pages/student/QuizTake';
 import ForumPage from './pages/forums/ForumPage';
 import ThreadPage from './pages/forums/ThreadPage';
@@ -69,6 +70,11 @@ function App() {
                 <Route path="/student/*" element={
                   <ProtectedRoute allowedRoles={['student', 'admin']}>
                     <StudentDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/student/courses" element={
+                  <ProtectedRoute allowedRoles={['student','admin']}>
+                    <StudentCourses />
                   </ProtectedRoute>
                 } />
                 <Route path="/student/grades" element={
