@@ -109,7 +109,7 @@ const CourseManagement = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {courses.map((course) => (
-            <div key={course._id} className="card hover:shadow-lg transition-shadow duration-300">
+            <div key={course._id} className="card hover:shadow-lg transition-shadow duration-300 h-full">
               <div className="flex space-x-4">
                 <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center flex-shrink-0">
                   {course.thumbnail ? (
@@ -160,10 +160,10 @@ const CourseManagement = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Link
                       to={`/tutor/courses/${course._id}`}
-                      className="flex-1 btn-primary text-sm py-1 px-3 text-center"
+                      className="btn-primary w-full md:flex-1 text-sm py-1 px-3 text-center"
                     >
                       Manage Course
                     </Link>

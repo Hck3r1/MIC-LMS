@@ -149,7 +149,7 @@ const CourseDetail = () => {
               <div className="card">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-gray-900">Discussion</h2>
-                  <a href={`/forums/course/${id}`} className="btn-outline text-sm inline-flex items-center"><ChatBubbleLeftEllipsisIcon className="w-4 h-4 mr-1"/>Open Forum</a>
+                  <Link to={`/forums/course/${id}`} className="btn-outline text-sm inline-flex items-center"><ChatBubbleLeftEllipsisIcon className="w-4 h-4 mr-1"/>Open Forum</Link>
                 </div>
               </div>
             </div>

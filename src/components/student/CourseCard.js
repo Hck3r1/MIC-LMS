@@ -32,9 +32,9 @@ const CourseCard = ({ course, enrollment, onEnroll, onUnenroll, loading }) => {
   };
 
   return (
-    <div className="card hover:shadow-lg transition-shadow duration-300">
+    <div className="card hover:shadow-lg transition-shadow duration-300 overflow-hidden h-full flex flex-col">
       <div className="relative">
-        <div className="w-full h-48 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center">
+        <div className="w-full h-48 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center overflow-hidden">
           {course.thumbnail ? (
             <img
               src={course.thumbnail}
@@ -61,18 +61,18 @@ const CourseCard = ({ course, enrollment, onEnroll, onUnenroll, loading }) => {
         )}
       </div>
 
-      <div className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+      <div className="p-6 flex-1 flex flex-col">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 break-words">
           {course.title}
         </h3>
 
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2 break-words">
           {course.description}
         </p>
 
         <div className="flex items-center text-sm text-gray-500 mb-4">
           <UserIcon className="w-4 h-4 mr-1" />
-          <span className="truncate">{course.instructor?.firstName} {course.instructor?.lastName}</span>
+          <span className="truncate max-w-[50%]">{course.instructor?.firstName} {course.instructor?.lastName}</span>
           <span className="mx-2">•</span>
           <ClockIcon className="w-4 h-4 mr-1" />
           <span>{course.duration}h</span>
@@ -101,7 +101,7 @@ const CourseCard = ({ course, enrollment, onEnroll, onUnenroll, loading }) => {
               <span className="text-gray-600">Progress</span>
               <span className="text-gray-900 font-medium">{progress}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
               <div
                 className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(progress)}`}
                 style={{ width: `${progress}%` }}
@@ -111,7 +111,7 @@ const CourseCard = ({ course, enrollment, onEnroll, onUnenroll, loading }) => {
         )}
 
         {/* Action Buttons */}
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 mt-auto">
           {isEnrolled ? (
             <>
               <Link to={`/courses/${course._id}/learn`} className="flex-1 btn-primary text-center text-sm py-2">Continue Learning</Link>

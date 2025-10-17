@@ -112,7 +112,17 @@ const ManageCourse = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <button className="btn-outline text-xs px-2 py-1">Message</button>
+                      <button
+                        className="btn-outline text-xs px-2 py-1"
+                        onClick={() => {
+                          const sid = enr.student?._id || enr.student;
+                          const fullName = `${enr.student?.firstName || ''} ${enr.student?.lastName || ''}`.trim();
+                          const qp = fullName ? `?name=${encodeURIComponent(fullName)}` : '';
+                          navigate(`/messages/with/${sid}${qp}`);
+                        }}
+                      >
+                        Message
+                      </button>
                       <Link to={`/profile?user=${enr.student?._id}`} className="btn-outline text-xs px-2 py-1">View</Link>
                     </div>
                   </li>
