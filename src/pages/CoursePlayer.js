@@ -95,7 +95,7 @@ const CoursePlayer = () => {
   }, [id, fetchCourse, fetchModules]);
 
   const activeModule = useMemo(() => (modules && modules[activeModuleIdx]) || null, [modules, activeModuleIdx]);
-  const activeContent = useMemo(() => (activeModule?.content && activeModule.content[activeContentIdx]) || null, [activeModule, activeContentIdx]);
+  const activeContent = useMemo(() => (Array.isArray(activeModule?.content) && activeModule.content[activeContentIdx]) || null, [activeModule, activeContentIdx]);
 
   useEffect(() => {
     if (!activeModule?._id) return;
@@ -139,10 +139,12 @@ const CoursePlayer = () => {
               <PdfViewer url={activeContent.url} />
             )}
             {activeContent?.type === 'text' && (
-              <TextViewer text={activeContent.text || activeContent.body} />
+              <TextViewer text={activeContent.text || activeContent.body || activeContent.content} />
             )}
             {activeContent?.type === 'image' && (
-              <ImageGallery files={activeContent.files || []} />
+              Array.isArray(activeContent.files) && activeContent.files.length > 0
+                ? <ImageGallery files={activeContent.files} />
+                : <ImageGallery files={[{ url: activeContent.url, filename: activeContent.title || 'image', fileType: activeContent.fileType || '' }]} />
             )}
           </div>
           <div className="card">
