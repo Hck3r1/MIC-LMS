@@ -31,6 +31,10 @@ const AssignmentsManage = () => {
     try {
       await axios.post(`${API_URL}/assignments`, { ...form, courseId }, { headers });
       alert('Assignment created');
+      // Immediately refresh assignments for the selected module so UI reflects the new item
+      if (form.moduleId) {
+        await fetchAssignments(form.moduleId);
+      }
       setForm({ moduleId: '', title: '', description: '', instructions: '', type: 'file_upload', dueDate: '', maxPoints: 100 });
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create assignment');
