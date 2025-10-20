@@ -207,20 +207,25 @@ const StudentDashboard = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {courses.slice(0, 6).map((course) => {
-              const isEnrolled = !!(course.isEnrolled || (course.enrolledStudents?.some(enr => (enr.student?._id || enr.student) === user?._id)));
-              const enrollmentObj = isEnrolled ? { progress: 0 } : null;
-              return (
-                <CourseCard
-                  key={course._id}
-                  course={course}
-                  enrollment={enrollmentObj}
-                  onEnroll={handleEnroll}
-                  onUnenroll={handleUnenroll}
-                  loading={enrollingId === course._id}
-                />
+            {(() => {
+              const enrolledIds = new Set(
+                (user?.enrolledCourses || []).map((c) => c?._id || c?.id || c)
               );
-            })}
+              return courses.slice(0, 6).map((course) => {
+                const isEnrolled = enrolledIds.has(course._id) || !!course.isEnrolled;
+                const enrollmentObj = isEnrolled ? { progress: 0 } : null;
+                return (
+                  <CourseCard
+                    key={course._id}
+                    course={course}
+                    enrollment={enrollmentObj}
+                    onEnroll={handleEnroll}
+                    onUnenroll={handleUnenroll}
+                    loading={enrollingId === course._id}
+                  />
+                );
+              });
+            })()}
           </div>
           {/* Certificates quick action if completed */}
           <div className="mt-4">

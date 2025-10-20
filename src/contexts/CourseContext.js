@@ -390,7 +390,16 @@ export const CourseProvider = ({ children }) => {
     try {
       // keep loading true if reset just happened
       const response = await axios.get(`${API_URL}/modules/course/${courseId}`, { headers: getAuthHeaders() });
-      dispatch({ type: 'SET_MODULES', payload: response.data.data.modules });
+      // Be tolerant to varying API response shapes across environments
+      const data = response?.data;
+      const modules = Array.isArray(data?.data?.modules)
+        ? data.data.modules
+        : Array.isArray(data?.modules)
+          ? data.modules
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
+      dispatch({ type: 'SET_MODULES', payload: modules });
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: error.response?.data?.message || 'Failed to fetch modules' });
     }
@@ -401,7 +410,16 @@ export const CourseProvider = ({ children }) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       const response = await axios.get(`${API_URL}/assignments/module/${moduleId}`, { headers: getAuthHeaders() });
-      dispatch({ type: 'SET_ASSIGNMENTS', payload: response.data.data.assignments });
+      // Accept different response wrappers
+      const data = response?.data;
+      const assignments = Array.isArray(data?.data?.assignments)
+        ? data.data.assignments
+        : Array.isArray(data?.assignments)
+          ? data.assignments
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
+      dispatch({ type: 'SET_ASSIGNMENTS', payload: assignments });
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: error.response?.data?.message || 'Failed to fetch assignments' });
     }
