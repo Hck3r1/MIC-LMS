@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useCourses } from '../../contexts/CourseContext';
 import axios from 'axios';
+import { ArrowLeftIcon, BookOpenIcon } from '@heroicons/react/24/outline';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api';
 
@@ -67,10 +68,54 @@ const AssignmentsManage = () => {
     }
   };
 
+  const onPublish = async (assignment) => {
+    if (!window.confirm(`Publish "${assignment.title}"? Students will be able to submit to this assignment.`)) return;
+    setLoading(true);
+    setError('');
+    try {
+      const response = await axios.patch(`${API_URL}/assignments/${assignment._id}/publish`, {}, { headers });
+      if (response.data.success) {
+        alert('Assignment published successfully!');
+        await fetchAssignments(assignment.moduleId);
+      } else {
+        alert(response.data.message || 'Failed to publish assignment');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to publish assignment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Manage Assignments</h1>
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center space-x-2 text-sm text-gray-600 mb-4">
+          <Link to="/tutor/courses" className="hover:text-primary-600 transition-colors">
+            Manage Courses
+          </Link>
+          <span>/</span>
+          <Link to={`/tutor/courses/${courseId}`} className="hover:text-primary-600 transition-colors">
+            Course Details
+          </Link>
+          <span>/</span>
+          <span className="text-gray-900 font-medium">Assignments</span>
+        </div>
+
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <BookOpenIcon className="w-8 h-8 text-primary-600" />
+            <h1 className="text-2xl font-bold text-gray-900">Manage Assignments</h1>
+          </div>
+          <Link 
+            to={`/tutor/courses/${courseId}`}
+            className="btn-outline inline-flex items-center"
+          >
+            <ArrowLeftIcon className="w-4 h-4 mr-2" />
+            Back to Course
+          </Link>
+        </div>
         {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">{error}</div>}
         <form onSubmit={createAssignment} className="card space-y-4">
           <div>
@@ -126,11 +171,31 @@ const AssignmentsManage = () => {
             <div className="divide-y divide-gray-100">
               {(assignments || []).map((a) => (
                 <div key={a._id} className="py-3 flex items-center justify-between">
-                  <div>
-                    <div className="text-gray-900 font-medium">{a.title}</div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <div className="text-gray-900 font-medium">{a.title}</div>
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        a.isPublished 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {a.isPublished ? 'Published' : 'Draft'}
+                      </span>
+                    </div>
                     <div className="text-sm text-gray-600">Due: {a.dueDate ? new Date(a.dueDate).toLocaleString() : '—'}</div>
+                    <div className="text-sm text-gray-500">Type: {a.type.replace('_', ' ')} • Points: {a.maxPoints}</div>
                   </div>
                   <div className="flex items-center gap-2">
+                    {!a.isPublished && (
+                      <button 
+                        type="button" 
+                        className="btn-primary text-sm" 
+                        onClick={() => onPublish(a)}
+                        disabled={loading}
+                      >
+                        Publish
+                      </button>
+                    )}
                     <button type="button" className="btn-outline" onClick={() => onEdit(a)}>Edit</button>
                     <button type="button" className="btn-danger" onClick={() => onDelete(a)}>Delete</button>
                   </div>

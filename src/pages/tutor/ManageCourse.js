@@ -71,8 +71,17 @@ const ManageCourse = () => {
           </div>
 
           <div className="card">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Modules</h2>
-            <p className="text-gray-500">Modules management coming soon.</p>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Modules & Assignments</h2>
+              <Link 
+                to={`/tutor/courses/${id}/assignments`}
+                className="btn-primary inline-flex items-center"
+              >
+                <BookOpenIcon className="w-4 h-4 mr-2" />
+                Manage Assignments
+              </Link>
+            </div>
+            <p className="text-gray-500">Create and manage assignments for your course modules.</p>
           </div>
         </div>
 
