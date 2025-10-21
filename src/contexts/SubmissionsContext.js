@@ -8,12 +8,24 @@ const SubmissionsContext = createContext();
 export const SubmissionsProvider = ({ children }) => {
   const authHeaders = useMemo(() => ({ Authorization: `Bearer ${localStorage.getItem('token') || ''}` }), []);
 
-  const submitAssignment = async ({ assignmentId, textSubmission, files }) => {
+  const submitAssignment = async ({ assignmentId, textSubmission, files, codeSubmission }) => {
     const form = new FormData();
     form.append('assignmentId', assignmentId);
     if (textSubmission) form.append('textSubmission', textSubmission);
+    if (codeSubmission) form.append('codeSubmission', codeSubmission);
     (files || []).forEach((f) => form.append('files', f));
-    const res = await axios.post(`${API_URL}/submissions`, form, { headers: { ...authHeaders } });
+    
+    // Debug: Log what we're sending
+    console.log('FormData contents:');
+    for (let [key, value] of form.entries()) {
+      console.log(`${key}:`, value);
+    }
+    
+    const res = await axios.post(`${API_URL}/submissions`, form, { 
+      headers: { 
+        ...authHeaders
+      } 
+    });
     return res.data;
   };
 
