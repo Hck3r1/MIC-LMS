@@ -136,67 +136,46 @@ const CoursePlayer = () => {
   const markModuleComplete = async () => {
     if (!activeModule?._id || !id || isMarkingComplete) return;
     
-    console.log('Attempting to mark module complete:', {
-      courseId: id,
-      moduleId: activeModule._id,
-      apiUrl: API_URL
-    });
-    
     setIsMarkingComplete(true);
+    
+    // For now, use local storage as a temporary solution
     try {
-      const response = await axios.post(`${API_URL}/progress/complete-module`, {
-        courseId: id,
-        moduleId: activeModule._id
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-
-      console.log('Progress API response:', response.data);
-
-      if (response.data.success) {
-        // Update local progress state
-        setModuleProgress(prev => ({
-          ...prev,
-          [activeModule._id]: {
-            ...prev[activeModule._id],
-            status: 'completed',
-            completionPercentage: 100,
-            completedAt: new Date(),
-            isCompleted: true
-          }
-        }));
-        
-        // Show success message
-        alert('Module marked as completed! 🎉');
-      }
+      // Get existing progress from localStorage
+      const existingProgress = JSON.parse(localStorage.getItem('moduleProgress') || '{}');
+      
+      // Update progress for this module
+      const updatedProgress = {
+        ...existingProgress,
+        [activeModule._id]: {
+          status: 'completed',
+          completionPercentage: 100,
+          completedAt: new Date().toISOString(),
+          isCompleted: true,
+          courseId: id,
+          moduleId: activeModule._id
+        }
+      };
+      
+      // Save to localStorage
+      localStorage.setItem('moduleProgress', JSON.stringify(updatedProgress));
+      
+      // Update local state
+      setModuleProgress(prev => ({
+        ...prev,
+        [activeModule._id]: {
+          ...prev[activeModule._id],
+          status: 'completed',
+          completionPercentage: 100,
+          completedAt: new Date(),
+          isCompleted: true
+        }
+      }));
+      
+      alert('Module marked as completed! 🎉 (Progress saved locally)');
+      
     } catch (error) {
       console.error('Error marking module complete:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      
-      if (error.response?.status === 404) {
-        // Temporary fallback: mark as complete locally without backend
-        console.log('Progress API not available, using local fallback');
-        setModuleProgress(prev => ({
-          ...prev,
-          [activeModule._id]: {
-            ...prev[activeModule._id],
-            status: 'completed',
-            completionPercentage: 100,
-            completedAt: new Date(),
-            isCompleted: true
-          }
-        }));
-        alert('Module marked as completed! (Note: Progress tracking will be saved when backend is updated)');
-      } else if (error.response?.status === 403) {
-        alert('You are not enrolled in this course. Please contact support if you believe this is an error.');
-      } else if (error.response?.status === 500) {
-        alert('Server error. Please try again later.');
-      } else if (!error.response) {
-        alert('Network error. Please check your connection and try again.');
-      } else {
-        alert(`Error marking module as complete: ${error.response?.data?.message || 'Unknown error'}`);
-      }
+      alert('Error marking module as complete. Please try again.');
     } finally {
       setIsMarkingComplete(false);
     }
