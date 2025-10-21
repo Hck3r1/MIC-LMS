@@ -101,6 +101,7 @@ const CoursePlayer = () => {
   const [videoMetadata, setVideoMetadata] = useState({});
   const [moduleProgress, setModuleProgress] = useState({});
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
+  const [submissionData, setSubmissionData] = useState({});
   const trackRef = useRef(null);
 
   useEffect(() => {
@@ -136,46 +137,67 @@ const CoursePlayer = () => {
   const markModuleComplete = async () => {
     if (!activeModule?._id || !id || isMarkingComplete) return;
     
-    setIsMarkingComplete(true);
+    console.log('Attempting to mark module complete:', {
+      courseId: id,
+      moduleId: activeModule._id,
+      apiUrl: API_URL
+    });
     
-    // For now, use local storage as a temporary solution
+    setIsMarkingComplete(true);
     try {
-      // Get existing progress from localStorage
-      const existingProgress = JSON.parse(localStorage.getItem('moduleProgress') || '{}');
-      
-      // Update progress for this module
-      const updatedProgress = {
-        ...existingProgress,
-        [activeModule._id]: {
-          status: 'completed',
-          completionPercentage: 100,
-          completedAt: new Date().toISOString(),
-          isCompleted: true,
-          courseId: id,
-          moduleId: activeModule._id
-        }
-      };
-      
-      // Save to localStorage
-      localStorage.setItem('moduleProgress', JSON.stringify(updatedProgress));
-      
-      // Update local state
-      setModuleProgress(prev => ({
-        ...prev,
-        [activeModule._id]: {
-          ...prev[activeModule._id],
-          status: 'completed',
-          completionPercentage: 100,
-          completedAt: new Date(),
-          isCompleted: true
-        }
-      }));
-      
-      alert('Module marked as completed! 🎉 (Progress saved locally)');
-      
+      const response = await axios.post(`${API_URL}/progress/complete-module`, {
+        courseId: id,
+        moduleId: activeModule._id
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      console.log('Progress API response:', response.data);
+
+      if (response.data.success) {
+        // Update local progress state
+        setModuleProgress(prev => ({
+          ...prev,
+          [activeModule._id]: {
+            ...prev[activeModule._id],
+            status: 'completed',
+            completionPercentage: 100,
+            completedAt: new Date(),
+            isCompleted: true
+          }
+        }));
+        
+        // Show success message
+        alert('Module marked as completed! 🎉');
+      }
     } catch (error) {
       console.error('Error marking module complete:', error);
-      alert('Error marking module as complete. Please try again.');
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      if (error.response?.status === 404) {
+        // Temporary fallback: mark as complete locally without backend
+        console.log('Progress API not available, using local fallback');
+        setModuleProgress(prev => ({
+          ...prev,
+          [activeModule._id]: {
+            ...prev[activeModule._id],
+            status: 'completed',
+            completionPercentage: 100,
+            completedAt: new Date(),
+            isCompleted: true
+          }
+        }));
+        alert('Module marked as completed! (Note: Progress tracking will be saved when backend is updated)');
+      } else if (error.response?.status === 403) {
+        alert('You are not enrolled in this course. Please contact support if you believe this is an error.');
+      } else if (error.response?.status === 500) {
+        alert('Server error. Please try again later.');
+      } else if (!error.response) {
+        alert('Network error. Please check your connection and try again.');
+      } else {
+        alert(`Error marking module as complete: ${error.response?.data?.message || 'Unknown error'}`);
+      }
     } finally {
       setIsMarkingComplete(false);
     }
@@ -198,6 +220,95 @@ const CoursePlayer = () => {
     }
   };
 
+  // Fetch submission data for assignments
+  const fetchSubmissionData = async () => {
+    if (!assignments || assignments.length === 0) return;
+    
+    try {
+      const submissionPromises = assignments.map(async (assignment) => {
+        try {
+          const response = await axios.get(`${API_URL}/submissions/student/${user?.id}`, {
+            params: { courseId: id },
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          });
+          
+          // Filter submissions for this specific assignment
+          const assignmentSubmissions = response.data?.data?.submissions?.filter(
+            sub => sub.assignmentId === assignment._id
+          ) || [];
+          
+          return {
+            assignmentId: assignment._id,
+            submissions: assignmentSubmissions
+          };
+        } catch (error) {
+          console.error(`Error fetching submissions for assignment ${assignment._id}:`, error);
+          return {
+            assignmentId: assignment._id,
+            submissions: []
+          };
+        }
+      });
+      
+      const results = await Promise.all(submissionPromises);
+      const submissionMap = {};
+      results.forEach(result => {
+        submissionMap[result.assignmentId] = result.submissions;
+      });
+      
+      setSubmissionData(submissionMap);
+    } catch (error) {
+      console.error('Error fetching submission data:', error);
+    }
+  };
+
+  // Check if all assignments for this module are completed
+  const checkAssignmentsCompletion = () => {
+    if (!assignments || assignments.length === 0) {
+      return { canComplete: true, reason: 'No assignments' };
+    }
+
+    // Check each assignment for completion status using actual submission data
+    const assignmentStatuses = assignments.map(assignment => {
+      const submissions = submissionData[assignment._id] || [];
+      const hasSubmissions = submissions.length > 0;
+      
+      // Check if any submission is graded (status: 'graded' and grade is not null)
+      const isGraded = hasSubmissions && submissions.some(sub => 
+        sub.status === 'graded' && sub.grade !== null && sub.grade !== undefined
+      );
+      
+      return {
+        id: assignment._id,
+        title: assignment.title,
+        hasSubmissions,
+        isGraded,
+        isCompleted: hasSubmissions && isGraded,
+        submissions: submissions
+      };
+    });
+
+    const completedAssignments = assignmentStatuses.filter(a => a.isCompleted);
+    const pendingAssignments = assignmentStatuses.filter(a => !a.isCompleted);
+
+    if (completedAssignments.length === assignments.length) {
+      return { 
+        canComplete: true, 
+        reason: 'All assignments completed and graded',
+        assignmentStatuses
+      };
+    } else {
+      return { 
+        canComplete: false, 
+        reason: `${pendingAssignments.length} assignment(s) not completed`,
+        pendingAssignments: pendingAssignments.length,
+        assignmentStatuses
+      };
+    }
+  };
+
+  const assignmentStatus = checkAssignmentsCompletion();
+
   const activeModule = useMemo(() => (modules && modules[activeModuleIdx]) || null, [modules, activeModuleIdx]);
   const activeContent = useMemo(() => (Array.isArray(activeModule?.content) && activeModule.content[activeContentIdx]) || null, [activeModule, activeContentIdx]);
 
@@ -205,6 +316,13 @@ const CoursePlayer = () => {
     if (!activeModule?._id) return;
     fetchAssignments(activeModule._id);
   }, [activeModule?._id, fetchAssignments]);
+
+  // Fetch submission data when assignments change
+  useEffect(() => {
+    if (assignments && assignments.length > 0) {
+      fetchSubmissionData();
+    }
+  }, [assignments, id]);
 
   // Track content viewing
   useEffect(() => {
@@ -347,22 +465,84 @@ const CoursePlayer = () => {
               )}
               
               {!moduleProgress[activeModule._id]?.isCompleted && (
-                <button
-                  onClick={markModuleComplete}
-                  disabled={isMarkingComplete}
-                  className="w-full bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {isMarkingComplete ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Marking Complete...
-                    </>
+                <div className="space-y-3">
+                  {!assignmentStatus.canComplete ? (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                          <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <h3 className="text-sm font-medium text-yellow-800">
+                            Complete Assignments First
+                          </h3>
+                          <div className="mt-2 text-sm text-yellow-700">
+                            <p>{assignmentStatus.reason}</p>
+                            <p className="mt-1">You must complete and submit all assignments before marking this module as complete.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   ) : (
-                    <>
-                      ✓ Mark Module as Complete
-                    </>
+                    <button
+                      onClick={markModuleComplete}
+                      disabled={isMarkingComplete}
+                      className="w-full bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isMarkingComplete ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Marking Complete...
+                        </>
+                      ) : (
+                        <>
+                          ✓ Mark Module as Complete
+                        </>
+                      )}
+                    </button>
                   )}
-                </button>
+                  
+                  {/* Assignment Status Summary */}
+                  {assignments && assignments.length > 0 && (
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Assignment Status</h4>
+                      <div className="space-y-2">
+                        {assignmentStatus.assignmentStatuses?.map((assignment, idx) => {
+                          const latestSubmission = assignment.submissions?.[0]; // Get the latest submission
+                          return (
+                            <div key={assignment.id || idx} className="flex items-center justify-between text-sm">
+                              <span className="text-gray-700 flex-1 truncate">{assignment.title}</span>
+                              <div className="flex items-center gap-2">
+                                {assignment.hasSubmissions && (
+                                  <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                                    Submitted
+                                  </span>
+                                )}
+                                {assignment.isGraded && latestSubmission?.grade !== null && (
+                                  <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                                    Graded ({latestSubmission.grade}%)
+                                  </span>
+                                )}
+                                {!assignment.hasSubmissions && (
+                                  <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+                                    Not Submitted
+                                  </span>
+                                )}
+                                {assignment.hasSubmissions && !assignment.isGraded && (
+                                  <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
+                                    Awaiting Grade
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
