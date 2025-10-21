@@ -23,6 +23,7 @@ const Navbar = () => {
   const unread = typeof unreadCount === 'number' ? unreadCount : 0;
   const [openBell, setOpenBell] = useState(false);
   const bellRef = useRef(null);
+  const profileRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   useEffect(() => {
@@ -37,14 +38,16 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (!openBell) return;
-      if (bellRef.current && !bellRef.current.contains(e.target)) {
+      if (openBell && bellRef.current && !bellRef.current.contains(e.target)) {
         setOpenBell(false);
+      }
+      if (isProfileOpen && profileRef.current && !profileRef.current.contains(e.target)) {
+        setIsProfileOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [openBell]);
+  }, [openBell, isProfileOpen]);
 
 
   const handleLogout = async () => {
@@ -168,10 +171,11 @@ const Navbar = () => {
                     </div>
                   )}
                 </div>
-                <button
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                >
+                <div className="relative" ref={profileRef}>
+                  <button
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                  >
                   {user?.avatar ? (
                     <img
                       className="w-8 h-8 rounded-full object-cover"
@@ -185,47 +189,76 @@ const Navbar = () => {
                       </span>
                     </div>
                   )}
-                  <span className="text-gray-700 font-medium">
-                    {user?.firstName}
-                  </span>
-                </button>
+                    <span className="text-gray-700 font-medium">
+                      {user?.firstName}
+                    </span>
+                  </button>
 
-                {/* Dropdown Menu */}
-                {isProfileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                    <Link
-                      to="/profile"
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setIsProfileOpen(false)}
-                    >
-                      <UserCircleIcon className="w-4 h-4 mr-2" />
-                      Profile
-                    </Link>
+                  {/* Dropdown Menu */}
+                  {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                    <div className="p-3 border-b">
+                      <div className="flex items-center space-x-3">
+                        {user?.avatar ? (
+                          <img
+                            className="w-10 h-10 rounded-full object-cover"
+                            src={user.avatar}
+                            alt={user.firstName}
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
+                            <span className="text-white text-sm font-medium">
+                              {user?.firstName?.charAt(0)}
+                            </span>
+                          </div>
+                        )}
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {user?.firstName} {user?.lastName}
+                          </div>
+                          <div className="text-xs text-gray-500">{user?.email}</div>
+                        </div>
+                      </div>
+                    </div>
                     
-                    <Link
-                      to={getDashboardLink()}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      onClick={() => setIsProfileOpen(false)}
-                    >
-                      {user?.role === 'student' ? (
-                        <AcademicCapIcon className="w-4 h-4 mr-2" />
-                      ) : (
-                        <ChartBarIcon className="w-4 h-4 mr-2" />
-                      )}
-                      {user?.role === 'student' ? 'My Dashboard' : 'Tutor Dashboard'}
-                    </Link>
+                    <div className="py-1">
+                      <Link
+                        to="/profile"
+                        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        <UserCircleIcon className="w-4 h-4 mr-3" />
+                        Profile Settings
+                      </Link>
+                      
+                      <Link
+                        to={getDashboardLink()}
+                        className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        {user?.role === 'student' ? (
+                          <AcademicCapIcon className="w-4 h-4 mr-3" />
+                        ) : (
+                          <ChartBarIcon className="w-4 h-4 mr-3" />
+                        )}
+                        {user?.role === 'student' ? 'My Dashboard' : 'Tutor Dashboard'}
+                      </Link>
+                    </div>
 
                     <div className="border-t border-gray-100"></div>
                     
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                    >
-                      <ArrowRightOnRectangleIcon className="w-4 h-4 mr-2" />
-                      Sign Out
-                    </button>
+                    <div className="py-1">
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      >
+                        <ArrowRightOnRectangleIcon className="w-4 h-4 mr-3" />
+                        Sign Out
+                      </button>
+                    </div>
                   </div>
-                )}
+                  )}
+                </div>
               </div>
             ) : (
               <div className="flex items-center space-x-3">
