@@ -10,7 +10,8 @@ import {
   ArrowRightOnRectangleIcon,
   AcademicCapIcon,
   ChartBarIcon,
-  BellIcon
+  BellIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 
 const Navbar = () => {
@@ -103,6 +104,17 @@ const Navbar = () => {
                   }`}
                 >
                   Dashboard
+                </Link>
+
+                <Link
+                  to="/messages"
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive('/messages')
+                      ? 'text-primary-600 bg-primary-50'
+                      : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                  }`}
+                >
+                  Messages
                 </Link>
 
                 {/* Role-specific navigation */}
@@ -277,6 +289,18 @@ const Navbar = () => {
                   onClick={() => setIsOpen(false)}
                 >
                   Dashboard
+                </Link>
+
+                <Link
+                  to="/messages"
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${
+                    isActive('/messages')
+                      ? 'text-primary-600 bg-primary-50'
+                      : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  Messages
                 </Link>
 
                 <Link

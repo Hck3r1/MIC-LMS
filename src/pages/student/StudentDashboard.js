@@ -44,6 +44,9 @@ const StudentDashboard = () => {
         await fetchCourses(1, {});
         const me = await getAuthMe();
         if (me.success && me.me) {
+          // Fetch real progress data
+          await fetchStudentProgress();
+          
           const analytics = await getStudentOverview(me.me.id || me.me._id);
           if (analytics.success) {
             setStats(prev => ({ ...prev, ...analytics.data }));
@@ -67,6 +70,46 @@ const StudentDashboard = () => {
     };
     loadDashboardData();
   }, [fetchCourses, getAuthMe, getStudentOverview]);
+
+  const fetchStudentProgress = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api'}/progress/student`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Update stats with real progress data
+          const totalCourses = data.data.totalCourses;
+          const completedCourses = data.data.courses.filter(c => c.progressPercentage === 100).length;
+          const totalModules = data.data.courses.reduce((sum, course) => sum + course.totalModules, 0);
+          const completedModules = data.data.courses.reduce((sum, course) => sum + course.completedModules, 0);
+          
+          setStats(prev => ({
+            ...prev,
+            totalCourses,
+            completedCourses,
+            totalModules,
+            completedModules,
+            averageGrade: prev.averageGrade, // Keep existing grade data
+            totalStudyTime: data.data.courses.reduce((sum, course) => sum + (course.totalTimeSpent || 0), 0)
+          }));
+          
+          // Update course breakdown with real data
+          setCourseBreakdown(data.data.courses.map(course => ({
+            name: course.courseTitle,
+            progress: course.progressPercentage
+          })));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching student progress:', error);
+    }
+  };
 
   const handleEnroll = async (courseId) => {
     try {

@@ -1,22 +1,33 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCourses } from '../contexts/CourseContext';
+import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 const API_URL = process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api';
 
 const YouTubeEmbed = ({ url, startSeconds = 0 }) => {
   const idMatch = (url || '').match(/[?&]v=([^&#]+)/) || (url || '').match(/youtu\.be\/([^?&#]+)/);
   const videoId = idMatch ? idMatch[1] : null;
-  if (!videoId) return <div className="text-gray-600">Invalid YouTube URL</div>;
+  
+  if (!videoId) {
+    return (
+      <div className="text-gray-600 p-4 border border-gray-300 rounded-lg">
+        <p>Invalid YouTube URL: {url}</p>
+        <p>Could not extract video ID</p>
+      </div>
+    );
+  }
+  
   return (
-    <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+    <div className="relative w-full" style={{ paddingBottom: '56.25%', height: 0 }}>
       <iframe
-        title="YouTube"
-        className="absolute top-0 left-0 w-full h-full rounded-lg"
-        src={`https://www.youtube.com/embed/${videoId}?start=${Math.max(0, parseInt(startSeconds || 0))}&rel=0&modestbranding=1`}
+        title="YouTube Video Player"
+        className="absolute top-0 left-0 w-full h-full rounded-lg border-0"
+        src={`https://www.youtube.com/embed/${videoId}?start=${Math.max(0, parseInt(startSeconds || 0))}&rel=0&modestbranding=1&autoplay=0`}
         frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen
+        loading="lazy"
       />
     </div>
   );
@@ -82,10 +93,14 @@ const Html5Video = ({ src }) => {
 
 const CoursePlayer = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const { currentCourse, modules, assignments, fetchCourse, fetchModules, fetchAssignments } = useCourses();
   const [activeModuleIdx, setActiveModuleIdx] = useState(0);
   const [activeContentIdx, setActiveContentIdx] = useState(0);
   const [videoStart, setVideoStart] = useState(0);
+  const [videoMetadata, setVideoMetadata] = useState({});
+  const [moduleProgress, setModuleProgress] = useState({});
+  const [isMarkingComplete, setIsMarkingComplete] = useState(false);
   const trackRef = useRef(null);
 
   useEffect(() => {
@@ -93,6 +108,83 @@ const CoursePlayer = () => {
     fetchCourse(id);
     fetchModules(id);
   }, [id, fetchCourse, fetchModules]);
+
+  // Fetch progress data
+  useEffect(() => {
+    if (!id || !user) return;
+    fetchProgress();
+  }, [id, user]);
+
+  const fetchProgress = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/progress/course/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.data.success) {
+        const progressMap = {};
+        response.data.data.modules.forEach(module => {
+          progressMap[module.moduleId] = module;
+        });
+        setModuleProgress(progressMap);
+      }
+    } catch (error) {
+      console.error('Error fetching progress:', error);
+    }
+  };
+
+  const markModuleComplete = async () => {
+    if (!activeModule?._id || !id || isMarkingComplete) return;
+    
+    setIsMarkingComplete(true);
+    try {
+      const response = await axios.post(`${API_URL}/progress/complete-module`, {
+        courseId: id,
+        moduleId: activeModule._id
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      if (response.data.success) {
+        // Update local progress state
+        setModuleProgress(prev => ({
+          ...prev,
+          [activeModule._id]: {
+            ...prev[activeModule._id],
+            status: 'completed',
+            completionPercentage: 100,
+            completedAt: new Date(),
+            isCompleted: true
+          }
+        }));
+        
+        // Show success message
+        alert('Module marked as completed! 🎉');
+      }
+    } catch (error) {
+      console.error('Error marking module complete:', error);
+      alert('Error marking module as complete. Please try again.');
+    } finally {
+      setIsMarkingComplete(false);
+    }
+  };
+
+  const trackContentView = async (contentId, timeSpent = 0) => {
+    if (!activeModule?._id || !id || !contentId) return;
+    
+    try {
+      await axios.post(`${API_URL}/progress/view-content`, {
+        courseId: id,
+        moduleId: activeModule._id,
+        contentId,
+        timeSpent
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+    } catch (error) {
+      console.error('Error tracking content view:', error);
+    }
+  };
 
   const activeModule = useMemo(() => (modules && modules[activeModuleIdx]) || null, [modules, activeModuleIdx]);
   const activeContent = useMemo(() => (Array.isArray(activeModule?.content) && activeModule.content[activeContentIdx]) || null, [activeModule, activeContentIdx]);
@@ -102,9 +194,64 @@ const CoursePlayer = () => {
     fetchAssignments(activeModule._id);
   }, [activeModule?._id, fetchAssignments]);
 
+  // Track content viewing
+  useEffect(() => {
+    if (!activeContent?._id && !activeContent?.title) return;
+    
+    const contentId = activeContent._id || activeContent.title;
+    trackContentView(contentId);
+  }, [activeContent]);
+
   useEffect(() => { setVideoStart(0); }, [activeContentIdx, activeModule?._id]);
 
   const isYouTubeUrl = (u) => /youtu(\.be|be\.com)\//i.test(u || '');
+
+  // Fetch YouTube video metadata
+  const fetchYouTubeMetadata = async (url) => {
+    if (!isYouTubeUrl(url)) return null;
+    
+    const videoId = (url.match(/[?&]v=([^&#]+)/) || url.match(/youtu\.be\/([^?&#]+)/))?.[1];
+    if (!videoId) return null;
+
+    try {
+      // Use YouTube oEmbed API for basic metadata
+      const response = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          title: data.title,
+          author: data.author_name,
+          thumbnail: data.thumbnail_url
+        };
+      }
+    } catch (error) {
+      console.warn('Failed to fetch YouTube metadata:', error);
+    }
+    return null;
+  };
+
+  // Load video metadata for all video content
+  useEffect(() => {
+    const loadVideoMetadata = async () => {
+      if (!activeModule?.content) return;
+      
+      const videoContents = activeModule.content.filter(c => c.type === 'video' && isYouTubeUrl(c.url));
+      const metadataPromises = videoContents.map(async (content) => {
+        const metadata = await fetchYouTubeMetadata(content.url);
+        return { contentId: content._id || content.title, metadata };
+      });
+      
+      const results = await Promise.all(metadataPromises);
+      const metadataMap = {};
+      results.forEach(({ contentId, metadata }) => {
+        if (metadata) metadataMap[contentId] = metadata;
+      });
+      
+      setVideoMetadata(metadataMap);
+    };
+
+    loadVideoMetadata();
+  }, [activeModule]);
 
   // Time tracking ping every 30s while viewing
   useEffect(() => {
@@ -132,11 +279,14 @@ const CoursePlayer = () => {
             )}
             {activeContent?.type === 'video' && (
               <div>
-                <h3 className="text-lg font-semibold mb-2">{activeContent.title || 'Video'}</h3>
-                {isYouTubeUrl(activeContent.url)
-                  ? <YouTubeEmbed url={activeContent.url} startSeconds={videoStart} />
-                  : <Html5Video src={activeContent.url} />
-                }
+                <h3 className="text-lg font-semibold mb-4">{activeContent.title || 'Video'}</h3>
+                {isYouTubeUrl(activeContent.url) ? (
+                  <div className="bg-gray-50 p-2 rounded-lg border">
+                    <YouTubeEmbed url={activeContent.url} startSeconds={videoStart} />
+                  </div>
+                ) : (
+                  <Html5Video src={activeContent.url} />
+                )}
               </div>
             )}
             {activeContent?.type === 'pdf' && (
@@ -151,6 +301,60 @@ const CoursePlayer = () => {
                 : <ImageGallery files={[{ url: activeContent.url, filename: activeContent.title || 'image', fileType: activeContent.fileType || '' }]} />
             )}
           </div>
+          
+          {/* Progress and Completion Section */}
+          {activeModule && (
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Module Progress</h2>
+                {moduleProgress[activeModule._id]?.isCompleted && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    ✓ Completed
+                  </span>
+                )}
+              </div>
+              
+              {moduleProgress[activeModule._id] && (
+                <div className="mb-4">
+                  <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                    <span>Progress</span>
+                    <span>{moduleProgress[activeModule._id].completionPercentage}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${moduleProgress[activeModule._id].completionPercentage}%` }}
+                    ></div>
+                  </div>
+                  {moduleProgress[activeModule._id].timeSpent > 0 && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Time spent: {Math.floor(moduleProgress[activeModule._id].timeSpent / 60)} minutes
+                    </p>
+                  )}
+                </div>
+              )}
+              
+              {!moduleProgress[activeModule._id]?.isCompleted && (
+                <button
+                  onClick={markModuleComplete}
+                  disabled={isMarkingComplete}
+                  className="w-full bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isMarkingComplete ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Marking Complete...
+                    </>
+                  ) : (
+                    <>
+                      ✓ Mark Module as Complete
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+          
           <div className="card">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Module Description</h2>
             <p className="text-gray-700">{activeModule?.description || 'No description'}</p>
@@ -191,12 +395,43 @@ const CoursePlayer = () => {
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Modules</h3>
             <div className="space-y-4">
               <ul className="divide-y divide-gray-100">
-                {(modules || []).map((m, idx) => (
-                  <li key={m._id || idx} className={`py-3 px-2 rounded cursor-pointer ${idx === activeModuleIdx ? 'bg-primary-50' : 'hover:bg-gray-50'}`} onClick={() => { setActiveModuleIdx(idx); setActiveContentIdx(0); }}>
-                    <div className="text-gray-900 font-medium">{m.title}</div>
-                    <div className="text-sm text-gray-600">{m.description}</div>
-                  </li>
-                ))}
+                {(modules || []).map((m, idx) => {
+                  const progress = moduleProgress[m._id];
+                  const isCompleted = progress?.isCompleted || false;
+                  
+                  return (
+                    <li key={m._id || idx} className={`py-3 px-2 rounded cursor-pointer ${idx === activeModuleIdx ? 'bg-primary-50' : 'hover:bg-gray-50'}`} onClick={() => { setActiveModuleIdx(idx); setActiveContentIdx(0); }}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="text-gray-900 font-medium flex items-center gap-2">
+                            {isCompleted && (
+                              <span className="text-green-600">✓</span>
+                            )}
+                            {m.title}
+                          </div>
+                          <div className="text-sm text-gray-600">{m.description}</div>
+                        </div>
+                        {isCompleted && (
+                          <span className="text-xs text-green-600 font-medium">Completed</span>
+                        )}
+                      </div>
+                      {progress && (
+                        <div className="mt-2">
+                          <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                            <span>Progress</span>
+                            <span>{progress.completionPercentage}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-1">
+                            <div 
+                              className="bg-primary-600 h-1 rounded-full transition-all duration-300"
+                              style={{ width: `${progress.completionPercentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
                 {(!modules || modules.length === 0) && (
                   <li className="py-4 text-sm text-gray-600">No modules yet.</li>
                 )}
@@ -204,12 +439,44 @@ const CoursePlayer = () => {
               <div className="">
                 <h4 className="text-sm font-semibold text-gray-900 mb-2">Contents</h4>
                 <ul className="space-y-2">
-                  {(activeModule?.content || []).map((c, cIdx) => (
-                    <li key={cIdx} className={`px-2 py-2 rounded text-sm cursor-pointer ${cIdx === activeContentIdx ? 'bg-primary-50' : 'hover:bg-gray-50'}`} onClick={() => setActiveContentIdx(cIdx)}>
-                      <span className="uppercase text-xs text-gray-500 mr-2">{c.type}</span>
-                      <span className="text-gray-800">{c.title || c.name || c.type}</span>
-                    </li>
-                  ))}
+                  {(activeModule?.content || []).map((c, cIdx) => {
+                    const contentId = c._id || c.title;
+                    const metadata = videoMetadata[contentId];
+                    const displayTitle = c.type === 'video' && isYouTubeUrl(c.url) && metadata?.title 
+                      ? metadata.title 
+                      : (c.title || c.name || c.type);
+                    
+                    // Extract video ID for better display
+                    const videoId = c.type === 'video' && isYouTubeUrl(c.url) 
+                      ? (c.url.match(/[?&]v=([^&#]+)/) || c.url.match(/youtu\.be\/([^?&#]+)/))?.[1]
+                      : null;
+                    
+                    return (
+                      <li key={cIdx} className={`px-2 py-2 rounded text-sm cursor-pointer ${cIdx === activeContentIdx ? 'bg-primary-50' : 'hover:bg-gray-50'}`} onClick={() => setActiveContentIdx(cIdx)}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="uppercase text-xs text-gray-500 flex-shrink-0">{c.type}</span>
+                              {c.type === 'video' && c.duration > 0 && (
+                                <span className="text-xs text-gray-500 flex-shrink-0">
+                                  {Math.floor(c.duration / 60)}:{(c.duration % 60).toString().padStart(2, '0')}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-gray-800 text-sm leading-tight break-words">
+                              {displayTitle}
+                            </div>
+                          </div>
+                        </div>
+                        {c.type === 'video' && metadata?.author && (
+                          <div className="text-xs text-gray-500 mt-1">by {metadata.author}</div>
+                        )}
+                        {c.type === 'video' && !metadata?.title && videoId && (
+                          <div className="text-xs text-gray-500 mt-1">YouTube Video</div>
+                        )}
+                      </li>
+                    );
+                  })}
                   {(!activeModule?.content || activeModule.content.length === 0) && (
                     <li className="text-sm text-gray-600">No contents in this module.</li>
                   )}
