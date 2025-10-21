@@ -163,7 +163,12 @@ const CoursePlayer = () => {
       }
     } catch (error) {
       console.error('Error marking module complete:', error);
-      alert('Error marking module as complete. Please try again.');
+      
+      if (error.response?.status === 404) {
+        alert('Progress tracking is not available yet. The backend needs to be updated with the new progress tracking features.');
+      } else {
+        alert('Error marking module as complete. Please try again.');
+      }
     } finally {
       setIsMarkingComplete(false);
     }
