@@ -9,11 +9,11 @@ const YouTubeEmbed = ({ url, startSeconds = 0 }) => {
   const videoId = idMatch ? idMatch[1] : null;
   if (!videoId) return <div className="text-gray-600">Invalid YouTube URL</div>;
   return (
-    <div className="aspect-w-16 aspect-h-9">
+    <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
       <iframe
         title="YouTube"
-        className="w-full h-full rounded-lg"
-        src={`https://www.youtube.com/embed/${videoId}?start=${Math.max(0, parseInt(startSeconds || 0))}`}
+        className="absolute top-0 left-0 w-full h-full rounded-lg"
+        src={`https://www.youtube.com/embed/${videoId}?start=${Math.max(0, parseInt(startSeconds || 0))}&rel=0&modestbranding=1`}
         frameBorder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
@@ -131,9 +131,13 @@ const CoursePlayer = () => {
               <div className="text-gray-600">No content in this module.</div>
             )}
             {activeContent?.type === 'video' && (
-              isYouTubeUrl(activeContent.url)
-                ? <YouTubeEmbed url={activeContent.url} startSeconds={videoStart} />
-                : <Html5Video src={activeContent.url} />
+              <div>
+                <h3 className="text-lg font-semibold mb-2">{activeContent.title || 'Video'}</h3>
+                {isYouTubeUrl(activeContent.url)
+                  ? <YouTubeEmbed url={activeContent.url} startSeconds={videoStart} />
+                  : <Html5Video src={activeContent.url} />
+                }
+              </div>
             )}
             {activeContent?.type === 'pdf' && (
               <PdfViewer url={activeContent.url} />
