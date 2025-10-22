@@ -47,6 +47,12 @@ const StudentDashboard = () => {
           // Fetch real progress data
           await fetchStudentProgress();
           
+          // Fetch activities and assignments
+          await Promise.all([
+            fetchRecentActivities(),
+            fetchUpcomingAssignments()
+          ]);
+          
           const analytics = await getStudentOverview(me.me.id || me.me._id);
           if (analytics.success) {
             setStats(prev => ({ ...prev, ...analytics.data }));
@@ -58,9 +64,6 @@ const StudentDashboard = () => {
             const enrolled = Array.isArray(me.me.enrolledCourses) ? me.me.enrolledCourses : [];
             setStats(prev => ({ ...prev, totalCourses: enrolled.length }));
           }
-          // Activities and assignments could be fetched via endpoints when available; keep empty otherwise
-          setActivities([]);
-          setUpcomingAssignments([]);
         }
       } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -108,6 +111,101 @@ const StudentDashboard = () => {
       }
     } catch (error) {
       console.error('Error fetching student progress:', error);
+    }
+  };
+
+  const fetchRecentActivities = async () => {
+    try {
+      // Get recent submissions from the backend
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api'}/submissions/recent?limit=10`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data.submissions) {
+          const activities = data.data.submissions.map(submission => ({
+            _id: `submission_${submission._id}`,
+            type: submission.status === 'graded' ? 'grade_received' : 'assignment_submitted',
+            title: submission.assignmentId?.title || 'Assignment',
+            course: submission.courseId?.title || 'Course',
+            timestamp: new Date(submission.createdAt),
+            status: submission.status,
+            grade: submission.grade,
+            gradePercentage: submission.gradePercentage
+          }));
+          
+          setActivities(activities);
+        } else {
+          setActivities([]);
+        }
+      } else {
+        console.error('Failed to fetch recent activities:', response.status);
+        setActivities([]);
+      }
+    } catch (error) {
+      console.error('Error fetching recent activities:', error);
+      setActivities([]);
+    }
+  };
+
+  const fetchUpcomingAssignments = async () => {
+    try {
+      // Get all enrolled courses first
+      const me = await getAuthMe();
+      if (!me.success || !me.me) {
+        setUpcomingAssignments([]);
+        return;
+      }
+      
+      const enrolledCourseIds = (me.me.enrolledCourses || []).map(c => c._id || c.id);
+      
+      if (enrolledCourseIds.length === 0) {
+        setUpcomingAssignments([]);
+        return;
+      }
+      
+      // Fetch assignments for all enrolled courses
+      const assignmentPromises = enrolledCourseIds.map(async (courseId) => {
+        try {
+          const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api'}/assignments/course/${courseId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            return data.success ? data.data.assignments : [];
+          }
+          return [];
+        } catch (error) {
+          console.error(`Error fetching assignments for course ${courseId}:`, error);
+          return [];
+        }
+      });
+      
+      const allAssignments = (await Promise.all(assignmentPromises)).flat();
+      
+      // Filter for upcoming assignments (due in the next 30 days)
+      const now = new Date();
+      const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      
+      const upcoming = allAssignments.filter(assignment => {
+        if (!assignment.dueDate) return false;
+        const dueDate = new Date(assignment.dueDate);
+        return dueDate > now && dueDate <= thirtyDaysFromNow;
+      });
+      
+      // Sort by due date (soonest first)
+      upcoming.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+      
+      setUpcomingAssignments(upcoming.slice(0, 5)); // Limit to 5 most urgent
+    } catch (error) {
+      console.error('Error fetching upcoming assignments:', error);
+      setUpcomingAssignments([]);
     }
   };
 

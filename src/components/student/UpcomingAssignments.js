@@ -7,48 +7,9 @@ import {
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
 
-const UpcomingAssignments = () => {
-  const [assignments, setAssignments] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Mock data - in real app, this would come from API
-    const mockAssignments = [
-      {
-        _id: '1',
-        title: 'React State Management Project',
-        course: 'Full-Stack React Development',
-        module: 'Advanced React Concepts',
-        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
-        maxPoints: 100,
-        type: 'project',
-        submitted: false
-      },
-      {
-        _id: '2',
-        title: 'CSS Grid Layout Exercise',
-        course: 'Web Development Basics',
-        module: 'CSS Layouts',
-        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
-        maxPoints: 50,
-        type: 'exercise',
-        submitted: false
-      },
-      {
-        _id: '3',
-        title: 'JavaScript ES6 Quiz',
-        course: 'JavaScript Fundamentals',
-        module: 'Modern JavaScript',
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-        maxPoints: 25,
-        type: 'quiz',
-        submitted: true
-      }
-    ];
-
-    setAssignments(mockAssignments);
-    setLoading(false);
-  }, []);
+const UpcomingAssignments = ({ assignments = [] }) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const getDaysUntilDue = (dueDate) => {
     const now = new Date();
