@@ -34,6 +34,7 @@ import ThreadPage from './pages/forums/ThreadPage';
 import MessagesPage from './pages/messages/MessagesPage';
 import ConversationPage from './pages/messages/ConversationPage';
 import GradeSubmissions from './pages/tutor/GradeSubmissions';
+import SubmissionGrade from './pages/tutor/SubmissionGrade';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 
@@ -110,6 +111,16 @@ function App() {
                 <Route path="/tutor/courses/:id/assignments" element={
                   <ProtectedRoute allowedRoles={['tutor', 'admin']}>
                     <AssignmentsManage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/tutor/submissions" element={
+                  <ProtectedRoute allowedRoles={['tutor', 'admin']}>
+                    <GradeSubmissions />
+                  </ProtectedRoute>
+                } />
+                <Route path="/tutor/submissions/:id" element={
+                  <ProtectedRoute allowedRoles={['tutor', 'admin']}>
+                    <SubmissionGrade />
                   </ProtectedRoute>
                 } />
                 <Route path="/tutor/assignments/:assignmentId/grade" element={
