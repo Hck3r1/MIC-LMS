@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import {
   DocumentTextIcon,
   ClockIcon,
@@ -11,69 +12,43 @@ import {
 const RecentSubmissions = () => {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const API_URL = process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api';
+  const headers = useMemo(() => ({ Authorization: `Bearer ${localStorage.getItem('token') || ''}` }), []);
 
   useEffect(() => {
-    // Mock data - in real app, this would come from API
-    const mockSubmissions = [
-      {
-        _id: '1',
-        student: {
-          _id: '1',
-          firstName: 'John',
-          lastName: 'Doe',
-          avatar: ''
-        },
-        assignment: {
-          _id: '1',
-          title: 'React Components Assignment',
-          course: 'Full-Stack React Development'
-        },
-        submittedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        status: 'submitted',
-        grade: null,
-        maxPoints: 100
-      },
-      {
-        _id: '2',
-        student: {
-          _id: '2',
-          firstName: 'Jane',
-          lastName: 'Smith',
-          avatar: ''
-        },
-        assignment: {
-          _id: '2',
-          title: 'CSS Grid Layout',
-          course: 'Web Development Basics'
-        },
-        submittedAt: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
-        status: 'graded',
-        grade: 85,
-        maxPoints: 100
-      },
-      {
-        _id: '3',
-        student: {
-          _id: '3',
-          firstName: 'Mike',
-          lastName: 'Johnson',
-          avatar: ''
-        },
-        assignment: {
-          _id: '3',
-          title: 'JavaScript Fundamentals Quiz',
-          course: 'JavaScript Basics'
-        },
-        submittedAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-        status: 'graded',
-        grade: 92,
-        maxPoints: 100
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(`${API_URL}/submissions/recent?limit=6`, { headers });
+        const list = res.data?.data?.submissions || [];
+        // Normalize to UI shape
+        const normalized = list.map(s => ({
+          _id: s._id,
+          student: {
+            _id: s.studentId?._id || s.studentId,
+            firstName: s.studentId?.firstName || '',
+            lastName: s.studentId?.lastName || '',
+            avatar: s.studentId?.avatar || ''
+          },
+          assignment: {
+            _id: s.assignmentId?._id || s.assignmentId,
+            title: s.assignmentId?.title || 'Assignment',
+            course: s.courseId?.title || 'Course'
+          },
+          submittedAt: new Date(s.createdAt || s.submittedAt || Date.now()),
+          status: s.status || 'submitted',
+          grade: typeof s.gradePercentage === 'number' ? Math.round((s.gradePercentage / 100) * (s.maxPoints || 100)) : (s.grade || null),
+          maxPoints: s.maxPoints || 100
+        }));
+        setSubmissions(normalized);
+      } catch (_) {
+        setSubmissions([]);
+      } finally {
+        setLoading(false);
       }
-    ];
-
-    setSubmissions(mockSubmissions);
-    setLoading(false);
-  }, []);
+    };
+    load();
+  }, [API_URL, headers]);
 
   const getStatusColor = (status) => {
     switch (status) {

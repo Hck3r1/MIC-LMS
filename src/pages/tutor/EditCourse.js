@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { useCourses } from '../../contexts/CourseContext';
 import { ArrowLeftIcon, PlusIcon } from '@heroicons/react/24/outline';
 
@@ -11,6 +12,7 @@ const EditCourse = () => {
     modules: courseModules,
     fetchCourse,
     fetchModules,
+    getCourseStructure,
     updateCourse,
     createModule,
     addModuleContent,
@@ -35,11 +37,20 @@ const EditCourse = () => {
   // Local editable modules builder (existing + new)
   const [modules, setModules] = useState([]);
 
+  const API_URL = process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api';
+  const authHeaders = useMemo(() => ({ Authorization: `Bearer ${localStorage.getItem('token') || ''}` }), []);
+
   useEffect(() => {
     if (!id) return;
-    fetchCourse(id);
-    fetchModules(id);
-  }, [id, fetchCourse, fetchModules]);
+    // Prefer single structure fetch; it also sets currentCourse/modules in context
+    (async () => {
+      const res = await getCourseStructure(id);
+      if (!res?.success) {
+        // Fallback to previous behavior
+        await Promise.all([fetchCourse(id), fetchModules(id)]);
+      }
+    })();
+  }, [id, getCourseStructure, fetchCourse, fetchModules]);
 
   useEffect(() => {
     if (!currentCourse) return;
@@ -79,25 +90,79 @@ const EditCourse = () => {
   }, [id, currentCourse, getAuthMe]);
 
   useEffect(() => {
-    // Initialize editable modules from fetched modules
-    const mapped = (courseModules || []).map((m, idx) => ({
-      _id: m._id,
-      title: m.title || '',
-      description: m.description || '',
-      order: m.order || (idx + 1),
-      // We only support adding new videos/assignments here; existing contents not fetched in this view
-      videos: [''],
-      assignments: [
-        { title: '', description: '', instructions: '', type: 'file_upload', dueDate: '', maxPoints: 100 }
-      ]
-    }));
-    if (mapped.length) setModules(mapped);
-    if (!mapped.length) setModules([
-      { title: '', description: '', order: 1, videos: [''], assignments: [
-        { title: '', description: '', instructions: '', type: 'file_upload', dueDate: '', maxPoints: 100 }
-      ] }
-    ]);
-  }, [courseModules]);
+    // Initialize editable modules from fetched modules and prefill existing videos/assignments
+    const load = async () => {
+      // Map existing module content (videos)
+      const base = (courseModules || []).map((m, idx) => ({
+        _id: m._id,
+        title: m.title || '',
+        description: m.description || '',
+        order: m.order || (idx + 1),
+        videos: Array.isArray(m.content)
+          ? m.content
+              .filter(c => c?.type === 'video' && typeof c?.url === 'string')
+              .map(c => c.url)
+          : [''],
+        assignments: []
+      }));
+
+      if (base.length === 0) {
+        setModules([
+          {
+            title: '',
+            description: '',
+            order: 1,
+            videos: [''],
+            assignments: [
+              { title: '', description: '', instructions: '', type: 'file_upload', dueDate: '', maxPoints: 100 }
+            ]
+          }
+        ]);
+        return;
+      }
+
+      // Fetch assignments per module in parallel
+      try {
+        const results = await Promise.all(
+          base.map(async (bm) => {
+            try {
+              const res = await axios.get(`${API_URL}/assignments/module/${bm._id}` , { headers: authHeaders });
+              const data = res?.data;
+              const list = Array.isArray(data?.data?.assignments)
+                ? data.data.assignments
+                : Array.isArray(data?.assignments)
+                  ? data.assignments
+                  : Array.isArray(data?.data)
+                    ? data.data
+                    : [];
+              const simplified = list.map(a => ({
+                title: a.title || '',
+                description: a.description || '',
+                instructions: a.instructions || '',
+                type: a.type || 'file_upload',
+                dueDate: a.dueDate ? new Date(a.dueDate).toISOString().slice(0,16) : '',
+                maxPoints: typeof a.maxPoints === 'number' ? a.maxPoints : 100
+              }));
+              return { ...bm, assignments: simplified.length ? simplified : [ { title: '', description: '', instructions: '', type: 'file_upload', dueDate: '', maxPoints: 100 } ] };
+            } catch (_) {
+              return { ...bm, assignments: [ { title: '', description: '', instructions: '', type: 'file_upload', dueDate: '', maxPoints: 100 } ] };
+            }
+          })
+        );
+        setModules(results);
+      } catch (_) {
+        // Fallback to base without assignments if any unexpected error
+        setModules(
+          base.map(b => ({
+            ...b,
+            assignments: [ { title: '', description: '', instructions: '', type: 'file_upload', dueDate: '', maxPoints: 100 } ]
+          }))
+        );
+      }
+    };
+
+    load();
+  }, [courseModules, API_URL, authHeaders]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

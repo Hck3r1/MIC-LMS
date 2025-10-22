@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCourses } from '../../contexts/CourseContext';
+import axios from 'axios';
 import {
   UsersIcon,
   BookOpenIcon,
@@ -25,7 +26,28 @@ const AnalyticsOverview = () => {
         getTutorRecentPerformance(user._id, '30d'),
         getTutorTopCourses(user._id, 3)
       ]);
-      if (o.success) setOverview(o.data);
+      if (o.success && o.data) {
+        setOverview(o.data);
+      } else {
+        // Client-side fallback: compute from instructor courses
+        try {
+          const API_URL = process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api';
+          const headers = (() => {
+            try { const token = localStorage.getItem('token'); return token ? { Authorization: `Bearer ${token}` } : {}; } catch { return {}; }
+          })();
+          const res = await axios.get(`${API_URL}/courses?instructor=${user._id}`, { headers });
+          const courses = res.data?.data?.courses || [];
+          const totalCourses = courses.length;
+          const totalStudents = courses.reduce((sum, c) => sum + (Array.isArray(c.enrolledStudents) ? c.enrolledStudents.length : 0), 0);
+          const ratings = courses.map(c => (c.rating && typeof c.rating.average === 'number') ? c.rating.average : null).filter(v => v !== null);
+          const averageRating = ratings.length ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10 : 0;
+          const completionRates = courses.map(c => (typeof c.completionRate === 'number') ? c.completionRate : null).filter(v => v !== null);
+          const completionRate = completionRates.length ? Math.round((completionRates.reduce((a, b) => a + b, 0) / completionRates.length)) : 0;
+          setOverview({ totalCourses, totalStudents, activeStudents: 0, averageRating, completionRate });
+        } catch (_) {
+          // leave as is; UI will show em dashes
+        }
+      }
       if (r.success) setRecent(r.data);
       if (t.success) setTopCourses(t.data.top || []);
     };
