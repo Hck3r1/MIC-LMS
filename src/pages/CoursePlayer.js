@@ -227,19 +227,18 @@ const CoursePlayer = () => {
     try {
       const submissionPromises = assignments.map(async (assignment) => {
         try {
-          const response = await axios.get(`${API_URL}/submissions/student/${user?.id}`, {
-            params: { courseId: id },
+          // Use the new student-specific endpoint
+          const response = await axios.get(`${API_URL}/submissions/assignment/${assignment._id}/student`, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
           
-          // Filter submissions for this specific assignment
-          const assignmentSubmissions = response.data?.data?.submissions?.filter(
-            sub => sub.assignmentId === assignment._id
-          ) || [];
+          console.log(`Submissions for assignment ${assignment._id}:`, response.data);
+          
+          const submissions = response.data?.data?.submissions || [];
           
           return {
             assignmentId: assignment._id,
-            submissions: assignmentSubmissions
+            submissions: submissions
           };
         } catch (error) {
           console.error(`Error fetching submissions for assignment ${assignment._id}:`, error);
@@ -256,6 +255,7 @@ const CoursePlayer = () => {
         submissionMap[result.assignmentId] = result.submissions;
       });
       
+      console.log('Final submission map:', submissionMap);
       setSubmissionData(submissionMap);
     } catch (error) {
       console.error('Error fetching submission data:', error);
@@ -554,15 +554,68 @@ const CoursePlayer = () => {
           <div className="card">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Assignments</h2>
             <ul className="divide-y divide-gray-100">
-              {(assignments || []).map((a) => (
-                <li key={a._id} className="py-3 flex items-center justify-between">
-                  <div>
-                    <div className="text-gray-900 font-medium">{a.title}</div>
-                    <div className="text-sm text-gray-600">Due: {a.dueDate ? new Date(a.dueDate).toLocaleString() : '—'}</div>
-                  </div>
-                  <a href={`/assignments/${a._id}/submit`} className="btn-outline text-sm">Submit</a>
-                </li>
-              ))}
+              {(assignments || []).map((a) => {
+                const submissions = submissionData[a._id] || [];
+                const latestSubmission = submissions[0]; // Most recent submission
+                const hasSubmissions = submissions.length > 0;
+                const isGraded = hasSubmissions && latestSubmission?.status === 'graded' && latestSubmission?.grade !== null;
+                
+                // Debug logging
+                console.log(`Assignment ${a.title}:`, {
+                  assignmentId: a._id,
+                  submissions: submissions.length,
+                  hasSubmissions,
+                  isGraded,
+                  latestSubmission: latestSubmission ? {
+                    status: latestSubmission.status,
+                    grade: latestSubmission.grade,
+                    gradePercentage: latestSubmission.gradePercentage
+                  } : null,
+                  submissionData: submissionData
+                });
+                
+                return (
+                  <li key={a._id} className="py-3 flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="text-gray-900 font-medium">{a.title}</div>
+                      <div className="text-sm text-gray-600">Due: {a.dueDate ? new Date(a.dueDate).toLocaleString() : '—'}</div>
+                      {hasSubmissions && (
+                        <div className="mt-1 flex items-center gap-2">
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            isGraded 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {isGraded ? `Graded (${latestSubmission.grade}/${a.maxPoints})` : 'Submitted'}
+                          </span>
+                          {isGraded && latestSubmission.gradePercentage && (
+                            <span className="text-xs text-gray-500">
+                              {latestSubmission.gradePercentage}%
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {hasSubmissions ? (
+                        <a 
+                          href={`/assignments/${a._id}/submit`} 
+                          className="btn-outline text-sm"
+                        >
+                          {isGraded ? 'View Grade' : 'View Submission'}
+                        </a>
+                      ) : (
+                        <a 
+                          href={`/assignments/${a._id}/submit`} 
+                          className="btn-outline text-sm"
+                        >
+                          Submit
+                        </a>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
               {(!assignments || assignments.length === 0) && (
                 <li className="py-3 text-sm text-gray-600">No assignments for this module.</li>
               )}

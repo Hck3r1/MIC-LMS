@@ -37,7 +37,14 @@ const RecentSubmissions = () => {
           },
           submittedAt: new Date(s.createdAt || s.submittedAt || Date.now()),
           status: s.status || 'submitted',
-          grade: typeof s.gradePercentage === 'number' ? Math.round((s.gradePercentage / 100) * (s.maxPoints || 100)) : (s.grade || null),
+          grade: (() => {
+            if (typeof s.gradePercentage === 'number' && !isNaN(s.gradePercentage)) {
+              return Math.round((s.gradePercentage / 100) * (s.maxPoints || 100));
+            } else if (typeof s.grade === 'number' && !isNaN(s.grade)) {
+              return s.grade;
+            }
+            return null;
+          })(),
           maxPoints: s.maxPoints || 100
         }));
         setSubmissions(normalized);

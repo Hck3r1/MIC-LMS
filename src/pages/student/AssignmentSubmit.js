@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSubmissions } from '../../contexts/SubmissionsContext';
 import CodeEditor from '../../components/common/CodeEditor';
@@ -10,7 +10,9 @@ import {
   ExclamationTriangleIcon,
   PaperAirplaneIcon,
   ClockIcon,
-  AcademicCapIcon
+  AcademicCapIcon,
+  EyeIcon,
+  StarIcon
 } from '@heroicons/react/24/outline';
 
 const AssignmentSubmit = () => {
@@ -25,6 +27,87 @@ const AssignmentSubmit = () => {
   const [success, setSuccess] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef(null);
+  
+  // New state for existing submission
+  const [existingSubmission, setExistingSubmission] = useState(null);
+  const [assignment, setAssignment] = useState(null);
+  const [loadingSubmission, setLoadingSubmission] = useState(true);
+
+  // Fetch existing submission and assignment details
+  useEffect(() => {
+    const fetchSubmissionData = async () => {
+      if (!assignmentId) return;
+      
+      try {
+        setLoadingSubmission(true);
+        
+        // Fetch assignment details
+        const assignmentRes = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/assignments/${assignmentId}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (assignmentRes.ok) {
+          const assignmentData = await assignmentRes.json();
+          setAssignment(assignmentData.data);
+        }
+        
+        // Fetch student's submissions for this assignment
+        let submissionsRes;
+        try {
+          // Try the new student-specific endpoint first
+          submissionsRes = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/submissions/assignment/${assignmentId}/student`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          
+        if (submissionsRes.ok) {
+          const submissionsData = await submissionsRes.json();
+          const submissions = submissionsData.data?.submissions || [];
+          
+          if (submissions.length > 0) {
+            // Get the most recent submission (already sorted by createdAt desc)
+            setExistingSubmission(submissions[0]);
+          }
+        } else {
+          console.error('Student endpoint failed:', submissionsRes.status, await submissionsRes.text());
+            
+            // Fallback to the original endpoint
+            const fallbackRes = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/submissions/assignment/${assignmentId}`, {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              }
+            });
+            
+            if (fallbackRes.ok) {
+              const fallbackData = await fallbackRes.json();
+              const submissions = fallbackData.data?.submissions || [];
+              const userSubmissions = submissions.filter(sub => 
+                sub.studentId === JSON.parse(localStorage.getItem('user')).id
+              );
+              
+              if (userSubmissions.length > 0) {
+                const latestSubmission = userSubmissions.sort((a, b) => 
+                  new Date(b.createdAt) - new Date(a.createdAt)
+                )[0];
+                setExistingSubmission(latestSubmission);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching submissions:', error);
+        }
+      } catch (error) {
+        console.error('Error fetching submission data:', error);
+      } finally {
+        setLoadingSubmission(false);
+      }
+    };
+    
+    fetchSubmissionData();
+  }, [assignmentId]);
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -121,6 +204,259 @@ const AssignmentSubmit = () => {
     if (file.type.includes('zip') || file.type.includes('rar')) return '📦';
     return '📎';
   };
+
+  const getGradeColor = (grade, maxPoints) => {
+    if (grade === null || grade === undefined) return 'text-gray-500';
+    const percentage = (grade / maxPoints) * 100;
+    if (percentage >= 80) return 'text-green-600';
+    if (percentage >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Show loading state
+  if (loadingSubmission) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading assignment details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if no submission found but we expected one
+  if (!loadingSubmission && !existingSubmission && assignmentId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center">
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ExclamationTriangleIcon className="w-8 h-8 text-yellow-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Submission Found</h2>
+            <p className="text-gray-600 mb-4">You haven't submitted this assignment yet.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="btn-primary"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+
+  // Show existing submission if found
+  if (existingSubmission) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
+              <EyeIcon className="w-8 h-8 text-primary-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Assignment Submission</h1>
+            <p className="text-gray-600">View your submission and grade</p>
+          </div>
+
+          {/* Assignment Info */}
+          {(assignment || existingSubmission.assignmentId) && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                {assignment?.title || existingSubmission.assignmentId?.title}
+              </h2>
+              <p className="text-gray-600 mb-4">
+                {assignment?.description || 'Assignment details'}
+              </p>
+              <div className="flex items-center space-x-4 text-sm text-gray-500">
+                <span>Max Points: {assignment?.maxPoints || existingSubmission.assignmentId?.maxPoints || existingSubmission.maxPoints}</span>
+                <span>Due: {assignment?.dueDate ? formatDate(assignment.dueDate) : existingSubmission.assignmentId?.dueDate ? formatDate(existingSubmission.assignmentId.dueDate) : 'No due date'}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Submission Status */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Submission Status</h3>
+              <div className="flex items-center space-x-2">
+                {existingSubmission.status === 'graded' ? (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                    <CheckCircleIcon className="w-4 h-4 mr-1" />
+                    Graded
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                    <ClockIcon className="w-4 h-4 mr-1" />
+                    Submitted
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Grade Display */}
+            {existingSubmission.status === 'graded' && existingSubmission.grade !== null && existingSubmission.grade !== undefined && (
+              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900">Grade</h4>
+                    <p className="text-sm text-gray-600">Your performance on this assignment</p>
+                  </div>
+                  <div className="text-right">
+                    <div className={`text-2xl font-bold ${getGradeColor(existingSubmission.grade, existingSubmission.assignmentId?.maxPoints || existingSubmission.maxPoints || 100)}`}>
+                      {existingSubmission.grade}/{existingSubmission.assignmentId?.maxPoints || existingSubmission.maxPoints || 100}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {existingSubmission.gradePercentage || Math.round((existingSubmission.grade / (existingSubmission.assignmentId?.maxPoints || existingSubmission.maxPoints || 100)) * 100)}%
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Feedback */}
+                {existingSubmission.feedback && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <h5 className="text-sm font-medium text-gray-900 mb-2">Instructor Feedback</h5>
+                    {typeof existingSubmission.feedback === 'string' ? (
+                      <p className="text-sm text-gray-700 bg-white p-3 rounded-lg border">
+                        {existingSubmission.feedback}
+                      </p>
+                    ) : existingSubmission.feedback.general ? (
+                      <div className="bg-white p-3 rounded-lg border">
+                        <p className="text-sm text-gray-700 mb-2"><strong>General Feedback:</strong> {existingSubmission.feedback.general}</p>
+                        {existingSubmission.feedback.strengths && existingSubmission.feedback.strengths.length > 0 && (
+                          <div className="mb-2">
+                            <p className="text-sm font-medium text-green-700">Strengths:</p>
+                            <ul className="text-sm text-gray-700 ml-4">
+                              {existingSubmission.feedback.strengths.map((strength, index) => (
+                                <li key={index}>• {strength}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {existingSubmission.feedback.improvements && existingSubmission.feedback.improvements.length > 0 && (
+                          <div className="mb-2">
+                            <p className="text-sm font-medium text-yellow-700">Areas for Improvement:</p>
+                            <ul className="text-sm text-gray-700 ml-4">
+                              {existingSubmission.feedback.improvements.map((improvement, index) => (
+                                <li key={index}>• {improvement}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {existingSubmission.feedback.suggestions && existingSubmission.feedback.suggestions.length > 0 && (
+                          <div>
+                            <p className="text-sm font-medium text-blue-700">Suggestions:</p>
+                            <ul className="text-sm text-gray-700 ml-4">
+                              {existingSubmission.feedback.suggestions.map((suggestion, index) => (
+                                <li key={index}>• {suggestion}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="text-sm text-gray-500">
+              <p>Submitted on: {formatDate(existingSubmission.createdAt)}</p>
+              {existingSubmission.gradedAt && (
+                <p>Graded on: {formatDate(existingSubmission.gradedAt)}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Submission Content */}
+          <div className="space-y-6">
+            {/* Text Submission */}
+            {existingSubmission.textSubmission && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Written Response</h3>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-gray-700 whitespace-pre-wrap">{existingSubmission.textSubmission}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Code Submission */}
+            {existingSubmission.codeSubmission && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Code Submission</h3>
+                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+                  <pre className="text-sm">
+                    {(() => {
+                      // Handle different code submission formats
+                      if (typeof existingSubmission.codeSubmission === 'string') {
+                        return existingSubmission.codeSubmission;
+                      } else if (existingSubmission.codeSubmission.source) {
+                        return existingSubmission.codeSubmission.source;
+                      } else if (existingSubmission.codeSubmission.code) {
+                        return existingSubmission.codeSubmission.code;
+                      } else {
+                        return 'Code submission available but format not recognized';
+                      }
+                    })()}
+                  </pre>
+                </div>
+              </div>
+            )}
+
+            {/* File Attachments */}
+            {existingSubmission.files && existingSubmission.files.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">File Attachments</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {existingSubmission.files.map((file, index) => (
+                    <div key={index} className="flex items-center p-3 bg-gray-50 rounded-lg">
+                      <span className="text-2xl mr-3">{getFileIcon({ type: file.fileType || 'application/octet-stream' })}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{file.originalName}</p>
+                        <p className="text-xs text-gray-500">{file.fileSize ? formatFileSize(file.fileSize) : 'Unknown size'}</p>
+                      </div>
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                      >
+                        View
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Back Button */}
+          <div className="mt-8 flex justify-center">
+            <button
+              onClick={() => navigate(-1)}
+              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Back to Course
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (success) {
     return (

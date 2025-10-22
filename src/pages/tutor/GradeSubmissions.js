@@ -175,15 +175,29 @@ const GradeSubmissions = ({ assignmentId: assignmentIdProp }) => {
                     </div>
                     
                     <div className="flex items-center space-x-3">
-                      {submission.gradePercentage !== null ? (
-                        <span className="text-sm font-medium text-green-600">
-                          {Math.round(submission.gradePercentage)}%
-                        </span>
-                      ) : (
-                        <span className="text-sm text-gray-500">
-                          Not graded
-                        </span>
-                      )}
+                      {(() => {
+                        // Calculate percentage from available data
+                        let percentage = null;
+                        if (submission.gradePercentage !== null && submission.gradePercentage !== undefined) {
+                          percentage = submission.gradePercentage;
+                        } else if (submission.grade !== null && submission.grade !== undefined) {
+                          percentage = submission.grade;
+                        }
+                        
+                        if (percentage !== null && !isNaN(percentage)) {
+                          return (
+                            <span className="text-sm font-medium text-green-600">
+                              {Math.round(percentage)}%
+                            </span>
+                          );
+                        } else {
+                          return (
+                            <span className="text-sm text-gray-500">
+                              Not graded
+                            </span>
+                          );
+                        }
+                      })()}
                       
                       <Link
                         to={`/tutor/submissions/${submission._id}`}
