@@ -12,6 +12,8 @@ import Footer from './components/layout/Footer';
 import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Courses from './pages/Courses';
 import CourseDetail from './pages/CourseDetail';
@@ -53,6 +55,8 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/courses/:id" element={<CourseDetail />} />
                 <Route path="/courses/:id/learn" element={<ProtectedRoute allowedRoles={['student','admin']}><CoursePlayer /></ProtectedRoute>} />
