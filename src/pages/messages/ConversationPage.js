@@ -103,7 +103,27 @@ const ConversationPage = () => {
             backgroundRepeat: 'repeat'
           }}>
             {messages.map((m) => {
-              const isMine = String(m.from._id || m.from) === String(user?._id || '');
+              // Try multiple ways to compare user IDs
+              const fromId = m.from._id || m.from;
+              const currentUserId = user?._id || user?.id;
+              
+              // Try different comparison methods
+              let isMine = false;
+              if (fromId && currentUserId) {
+                isMine = String(fromId) === String(currentUserId);
+              }
+              
+              // Fallback: check if the message was sent by the current user
+              // by looking at the message structure
+              if (!isMine && m.from && user) {
+                isMine = (
+                  (m.from._id && user._id && String(m.from._id) === String(user._id)) ||
+                  (m.from.id && user.id && String(m.from.id) === String(user.id)) ||
+                  (m.from === user._id) ||
+                  (m.from === user.id)
+                );
+              }
+              
               const messageDate = new Date(m.createdAt);
               const now = new Date();
               const isToday = messageDate.toDateString() === now.toDateString();
@@ -111,17 +131,18 @@ const ConversationPage = () => {
               // Debug: Log the message info
               console.log('Message debug:', {
                 messageId: m._id,
-                fromId: m.from._id || m.from,
-                userId: user?._id,
+                fromId: fromId,
+                currentUserId: currentUserId,
+                userObject: user,
                 isMine: isMine,
                 content: m.content.substring(0, 20) + '...'
               });
               
               if (isMine) {
-                // Your messages - right side
+                // YOUR MESSAGES - RIGHT SIDE
                 return (
-                  <div key={m._id} className="flex justify-end mb-4">
-                    <div className="flex items-end max-w-[70%]">
+                  <div key={m._id} className="w-full flex justify-end mb-4">
+                    <div className="max-w-[70%]">
                       <div className="px-4 py-2 rounded-2xl shadow-sm bg-green-500 text-white rounded-br-sm">
                         <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
                           {m.content}
@@ -134,16 +155,17 @@ const ConversationPage = () => {
                             }
                           </span>
                           <span className="text-xs">✓✓</span>
+                          <span className="text-xs bg-green-600 px-1 rounded">You</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 );
               } else {
-                // Recipient messages - left side
+                // RECIPIENT MESSAGES - LEFT SIDE
                 return (
-                  <div key={m._id} className="flex justify-start mb-4">
-                    <div className="flex items-end max-w-[70%]">
+                  <div key={m._id} className="w-full flex justify-start mb-4">
+                    <div className="max-w-[70%] flex items-end">
                       <div className="flex-shrink-0 w-8 h-8 bg-gray-400 dark:bg-gray-600 rounded-full flex items-center justify-center mr-2 mb-1">
                         <span className="text-white text-xs font-medium">
                           {m.from.firstName?.charAt(0) || 'U'}
