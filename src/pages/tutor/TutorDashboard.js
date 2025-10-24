@@ -5,6 +5,7 @@ import { useCourses } from '../../contexts/CourseContext';
 import CourseManagement from '../../components/tutor/CourseManagement';
 import RecentSubmissions from '../../components/tutor/RecentSubmissions';
 import AnalyticsOverview from '../../components/tutor/AnalyticsOverview';
+import CertificateApproval from '../../components/tutor/CertificateApproval';
 import {
   AcademicCapIcon,
   BookOpenIcon,
@@ -67,48 +68,48 @@ const TutorDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="card">
             <div className="flex items-center">
-              <div className="p-3 bg-primary-100 rounded-lg">
-                <BookOpenIcon className="w-6 h-6 text-primary-600" />
+              <div className="p-3 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
+                <BookOpenIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Courses</p>
-                <p className="text-2xl font-bold text-gray-900">{overview?.totalCourses ?? '—'}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Courses</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{overview?.totalCourses ?? '—'}</p>
               </div>
             </div>
           </div>
 
           <div className="card">
             <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <UsersIcon className="w-6 h-6 text-green-600" />
+              <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <UsersIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Students</p>
-                <p className="text-2xl font-bold text-gray-900">{overview?.totalStudents ?? '—'}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Students</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{overview?.totalStudents ?? '—'}</p>
               </div>
             </div>
           </div>
 
           <div className="card">
             <div className="flex items-center">
-              <div className="p-3 bg-yellow-100 rounded-lg">
-                <ChartBarIcon className="w-6 h-6 text-yellow-600" />
+              <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                <ChartBarIcon className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Active Students (30d)</p>
-                <p className="text-2xl font-bold text-gray-900">{overview?.activeStudents ?? '—'}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Students (30d)</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{overview?.activeStudents ?? '—'}</p>
               </div>
             </div>
           </div>
 
           <div className="card">
             <div className="flex items-center">
-              <div className="p-3 bg-purple-100 rounded-lg">
-                <AcademicCapIcon className="w-6 h-6 text-purple-600" />
+              <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <AcademicCapIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Average Rating</p>
-                <p className="text-2xl font-bold text-gray-900">{overview?.averageRating ?? '—'}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Average Rating</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{overview?.averageRating ?? '—'}</p>
               </div>
             </div>
           </div>
@@ -127,6 +128,11 @@ const TutorDashboard = () => {
           </div>
         </div>
 
+        {/* Certificate Approval Section */}
+        <div className="mb-8">
+          <CertificateApproval />
+        </div>
+
         {/* Analytics Section */}
         <div className="mb-8">
           <AnalyticsOverview />
@@ -134,29 +140,29 @@ const TutorDashboard = () => {
 
         {/* Quick Actions */}
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="flex items-center p-4 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors" onClick={() => navigate('/tutor/create-course')}>
-              <PlusIcon className="w-6 h-6 text-primary-600 mr-3" />
+            <button className="flex items-center p-4 bg-primary-50 dark:bg-primary-900/20 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors" onClick={() => navigate('/tutor/create-course')}>
+              <PlusIcon className="w-6 h-6 text-primary-600 dark:text-primary-400 mr-3" />
               <div className="text-left">
-                <p className="font-medium text-gray-900">Create New Course</p>
-                <p className="text-sm text-gray-600">Start teaching a new subject</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">Create New Course</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Start teaching a new subject</p>
               </div>
             </button>
             
-            <button className="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
-              <ChartBarIcon className="w-6 h-6 text-green-600 mr-3" />
+            <button className="flex items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
+              <ChartBarIcon className="w-6 h-6 text-green-600 dark:text-green-400 mr-3" />
               <div className="text-left">
-                <p className="font-medium text-gray-900">Grade Assignments</p>
-                <p className="text-sm text-gray-600">Review and grade submissions</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">Grade Assignments</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Review and grade submissions</p>
               </div>
             </button>
             
-            <button className="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
-              <UsersIcon className="w-6 h-6 text-purple-600 mr-3" />
+            <button className="flex items-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
+              <UsersIcon className="w-6 h-6 text-purple-600 dark:text-purple-400 mr-3" />
               <div className="text-left">
-                <p className="font-medium text-gray-900">Manage Students</p>
-                <p className="text-sm text-gray-600">View student progress and feedback</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">Manage Students</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">View student progress and feedback</p>
               </div>
             </button>
           </div>

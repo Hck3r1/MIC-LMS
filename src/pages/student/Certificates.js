@@ -24,35 +24,54 @@ const Certificates = () => {
   const fetchCertificates = async () => {
     try {
       setLoading(true);
-      const me = await getAuthMe();
-      if (me.success && me.me) {
-        // Get completed courses (100% progress)
-        const completedCourses = (me.me.enrolledCourses || []).filter(enrollment => {
-          const progress = enrollment.progress || 0;
-          return progress >= 100;
-        });
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api'}/certificates/student/requests`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
 
-        // Transform to certificate format
-        const certificateData = completedCourses.map(enrollment => {
-          const course = enrollment.course || enrollment;
-          return {
-            id: course._id,
-            courseTitle: course.title,
-            courseDescription: course.description,
-            instructor: course.instructor,
-            completedAt: enrollment.completedAt || new Date(),
-            progress: enrollment.progress || 100,
-            category: course.category,
-            duration: course.duration
-          };
-        });
-
-        setCertificates(certificateData);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setCertificates(data.data || []);
+        }
       }
     } catch (error) {
       console.error('Error fetching certificates:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRequestCertificate = async (courseId, courseTitle) => {
+    setDownloading(courseId);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api'}/certificates/request`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          courseId: courseId,
+          courseTitle: courseTitle
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        alert('Certificate request submitted successfully! Your instructor will review and approve it.');
+        // Refresh the certificates list
+        fetchCertificates();
+      } else {
+        alert(`Error requesting certificate: ${data.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Certificate request error:', error);
+      alert('Failed to request certificate. Please try again.');
+    } finally {
+      setDownloading(null);
     }
   };
 
@@ -191,21 +210,21 @@ const Certificates = () => {
                     </div>
                   </div>
 
-                  {/* Download Button */}
+                  {/* Certificate Action Button */}
                   <button
-                    onClick={() => handleDownloadCertificate(certificate.id, certificate.courseTitle)}
+                    onClick={() => handleRequestCertificate(certificate.id, certificate.courseTitle)}
                     disabled={downloading === certificate.id}
                     className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
                     {downloading === certificate.id ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Generating...
+                        Requesting...
                       </>
                     ) : (
                       <>
-                        <ArrowDownTrayIcon className="w-5 h-5 mr-2" />
-                        Download Certificate
+                        <TrophyIcon className="w-5 h-5 mr-2" />
+                        Request Certificate
                       </>
                     )}
                   </button>

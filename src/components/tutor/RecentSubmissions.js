@@ -60,13 +60,13 @@ const RecentSubmissions = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'submitted':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300';
       case 'graded':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
       case 'returned':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
     }
   };
 
@@ -84,12 +84,12 @@ const RecentSubmissions = () => {
   };
 
   const getGradeColor = (grade, maxPoints) => {
-    if (!grade) return 'text-gray-500';
+    if (!grade) return 'text-gray-500 dark:text-gray-400';
     const percentage = (grade / maxPoints) * 100;
-    if (percentage >= 90) return 'text-green-600';
-    if (percentage >= 80) return 'text-blue-600';
-    if (percentage >= 70) return 'text-yellow-600';
-    return 'text-red-600';
+    if (percentage >= 90) return 'text-green-600 dark:text-green-400';
+    if (percentage >= 80) return 'text-blue-600 dark:text-blue-400';
+    if (percentage >= 70) return 'text-yellow-600 dark:text-yellow-400';
+    return 'text-red-600 dark:text-red-400';
   };
 
   const formatTimeAgo = (date) => {
@@ -108,13 +108,13 @@ const RecentSubmissions = () => {
   if (loading) {
     return (
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">Recent Submissions</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Recent Submissions</h3>
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
-              <div className="h-3 bg-gray-300 rounded w-1/2 mb-2"></div>
-              <div className="h-3 bg-gray-300 rounded w-1/4"></div>
+              <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-1/2 mb-2"></div>
+              <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-1/4"></div>
             </div>
           ))}
         </div>
@@ -125,10 +125,10 @@ const RecentSubmissions = () => {
   return (
     <div className="card">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Recent Submissions</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Submissions</h3>
         <Link
           to="/tutor/submissions"
-          className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+          className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium"
         >
           View All
         </Link>
@@ -137,15 +137,15 @@ const RecentSubmissions = () => {
       <div className="space-y-4">
         {submissions.length === 0 ? (
           <div className="text-center py-8">
-            <DocumentTextIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">No submissions yet</p>
+            <DocumentTextIcon className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+            <p className="text-gray-600 dark:text-gray-400">No submissions yet</p>
           </div>
         ) : (
           submissions.map((submission) => (
-            <div key={submission._id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+            <div key={submission._id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
                     {submission.student.avatar ? (
                       <img
                         src={submission.student.avatar}
@@ -153,14 +153,14 @@ const RecentSubmissions = () => {
                         className="w-full h-full rounded-full object-cover"
                       />
                     ) : (
-                      <UserIcon className="w-4 h-4 text-primary-600" />
+                      <UserIcon className="w-4 h-4 text-primary-600 dark:text-primary-400" />
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {submission.student.firstName} {submission.student.lastName}
                     </p>
-                    <p className="text-xs text-gray-600">{submission.assignment.course}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{submission.assignment.course}</p>
                   </div>
                 </div>
                 
@@ -171,12 +171,12 @@ const RecentSubmissions = () => {
                 </span>
               </div>
 
-              <h4 className="text-sm font-medium text-gray-900 mb-2">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                 {submission.assignment.title}
               </h4>
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center text-xs text-gray-500">
+                <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
                   <ClockIcon className="w-3 h-3 mr-1" />
                   {formatTimeAgo(submission.submittedAt)}
                 </div>
@@ -187,14 +187,14 @@ const RecentSubmissions = () => {
                       {submission.grade}/{submission.maxPoints}
                     </span>
                   ) : (
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       {submission.maxPoints} points
                     </span>
                   )}
                   
                   <Link
                     to={`/tutor/submissions/${submission._id}`}
-                    className="text-primary-600 hover:text-primary-700 text-sm font-medium flex items-center"
+                    className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium flex items-center"
                   >
                     <EyeIcon className="w-4 h-4 mr-1" />
                     {submission.status === 'graded' ? 'View' : 'Grade'}
@@ -207,12 +207,12 @@ const RecentSubmissions = () => {
       </div>
 
       {submissions.length > 0 && (
-        <div className="mt-6 pt-4 border-t border-gray-200">
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">
+            <span className="text-gray-600 dark:text-gray-400">
               {submissions.filter(s => s.status === 'submitted').length} pending
             </span>
-            <span className="text-gray-600">
+            <span className="text-gray-600 dark:text-gray-400">
               {submissions.filter(s => s.status === 'graded').length} graded
             </span>
           </div>

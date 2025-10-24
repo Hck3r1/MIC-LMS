@@ -63,11 +63,11 @@ const AnalyticsOverview = () => {
 
   const StatCard = ({ icon: Icon, title, value, subtitle, color = 'primary' }) => {
     const colorClasses = {
-      primary: 'bg-primary-100 text-primary-600',
-      green: 'bg-green-100 text-green-600',
-      yellow: 'bg-yellow-100 text-yellow-600',
-      blue: 'bg-blue-100 text-blue-600',
-      purple: 'bg-purple-100 text-purple-600'
+      primary: 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400',
+      green: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
+      yellow: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400',
+      blue: 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+      purple: 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
     };
 
     return (
@@ -77,9 +77,9 @@ const AnalyticsOverview = () => {
             <Icon className="w-6 h-6" />
           </div>
           <div className="ml-4">
-            <p className="text-sm font-medium text-gray-600">{title}</p>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-            {subtitle && <p className="text-xs text-gray-500">{subtitle}</p>}
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{title}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value}</p>
+            {subtitle && <p className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>}
           </div>
         </div>
       </div>
@@ -87,14 +87,14 @@ const AnalyticsOverview = () => {
   };
 
   const TrendCard = ({ label, value, change, positive }) => (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-600">{label}</p>
-          <p className="text-xl font-semibold text-gray-900">{value}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{label}</p>
+          <p className="text-xl font-semibold text-gray-900 dark:text-gray-100">{value}</p>
         </div>
         <div className={`flex items-center text-sm font-medium ${
-          positive ? 'text-green-600' : 'text-red-600'
+          positive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
         }`}>
           <ArrowTrendingUpIcon className={`w-4 h-4 mr-1 ${positive ? '' : 'rotate-180'}`} />
           {change}
@@ -150,7 +150,7 @@ const AnalyticsOverview = () => {
 
       {/* Recent Performance */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">Recent Performance</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Recent Performance</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {recent && (
             <>
@@ -166,16 +166,16 @@ const AnalyticsOverview = () => {
       {/* Quick Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Performing Courses</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Top Performing Courses</h3>
           <div className="space-y-3">
             {topCourses.map(c => (
               <div key={c.courseId} className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{c.title}</p>
-                  <p className="text-xs text-gray-600">{c.students} students • {c.rating.toFixed(1)} rating</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{c.title}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">{c.students} students • {c.rating.toFixed(1)} rating</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-green-600">{c.completionRate}% completion</p>
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400">{c.completionRate}% completion</p>
                 </div>
               </div>
             ))}
@@ -183,21 +183,21 @@ const AnalyticsOverview = () => {
         </div>
 
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Student Feedback</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Student Feedback</h3>
           <div className="space-y-4">
             <div className="border-l-4 border-green-400 pl-4">
-              <p className="text-sm text-gray-900">"Excellent course structure and clear explanations!"</p>
-              <p className="text-xs text-gray-600 mt-1">- Sarah Johnson, React Course</p>
+              <p className="text-sm text-gray-900 dark:text-gray-100">"Excellent course structure and clear explanations!"</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">- Sarah Johnson, React Course</p>
             </div>
             
             <div className="border-l-4 border-blue-400 pl-4">
-              <p className="text-sm text-gray-900">"Great hands-on projects that really helped me learn."</p>
-              <p className="text-xs text-gray-600 mt-1">- Mike Chen, JavaScript Course</p>
+              <p className="text-sm text-gray-900 dark:text-gray-100">"Great hands-on projects that really helped me learn."</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">- Mike Chen, JavaScript Course</p>
             </div>
             
             <div className="border-l-4 border-yellow-400 pl-4">
-              <p className="text-sm text-gray-900">"Well-paced content with practical examples."</p>
-              <p className="text-xs text-gray-600 mt-1">- Emily Davis, CSS Course</p>
+              <p className="text-sm text-gray-900 dark:text-gray-100">"Well-paced content with practical examples."</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">- Emily Davis, CSS Course</p>
             </div>
           </div>
         </div>
@@ -205,34 +205,34 @@ const AnalyticsOverview = () => {
 
       {/* Action Items */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Action Items</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Action Items</h3>
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
             <div className="flex items-center">
               <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
-              <span className="text-sm text-gray-900">23 assignments need grading</span>
+              <span className="text-sm text-gray-900 dark:text-gray-100">23 assignments need grading</span>
             </div>
-            <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+            <button className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium">
               Grade Now
             </button>
           </div>
           
-          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <div className="flex items-center">
               <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-              <span className="text-sm text-gray-900">5 students need feedback</span>
+              <span className="text-sm text-gray-900 dark:text-gray-100">5 students need feedback</span>
             </div>
-            <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+            <button className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium">
               Provide Feedback
             </button>
           </div>
           
-          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
             <div className="flex items-center">
               <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-              <span className="text-sm text-gray-900">Update course materials for 2 courses</span>
+              <span className="text-sm text-gray-900 dark:text-gray-100">Update course materials for 2 courses</span>
             </div>
-            <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+            <button className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium">
               Update
             </button>
           </div>
