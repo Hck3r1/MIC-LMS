@@ -33,37 +33,66 @@ const Profile = () => {
           <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your profile settings</p>
         </div>
 
-        {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">{error}</div>}
+        {error && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
 
-        <div className="card">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-gray-200 overflow-hidden">
-              {user?.avatar ? <img alt="avatar" src={user.avatar} className="w-full h-full object-cover" /> : null}
+            <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-600 overflow-hidden">
+              {user?.avatar ? (
+                <img alt="avatar" src={user.avatar} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gray-300 dark:bg-gray-500 flex items-center justify-center text-gray-600 dark:text-gray-300 text-2xl font-semibold">
+                  {user?.firstName?.charAt(0) || 'U'}
+                </div>
+              )}
             </div>
-            <label className="btn-outline text-sm cursor-pointer">
+            <label className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors text-sm cursor-pointer">
               Change Avatar
               <input type="file" accept="image/*" className="hidden" onChange={onAvatar} />
             </label>
           </div>
         </div>
 
-        <form onSubmit={onSave} className="card space-y-4">
+        <form onSubmit={onSave} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
-              <input className="input-field" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+              <input 
+                className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 transition-colors" 
+                value={firstName} 
+                onChange={(e) => setFirstName(e.target.value)} 
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
-              <input className="input-field" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              <input 
+                className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 transition-colors" 
+                value={lastName} 
+                onChange={(e) => setLastName(e.target.value)} 
+              />
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bio</label>
-            <textarea rows={4} className="input-field" value={bio} onChange={(e) => setBio(e.target.value)} />
+            <textarea 
+              rows={4} 
+              className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-primary-500 dark:focus:border-primary-400 transition-colors resize-none" 
+              value={bio} 
+              onChange={(e) => setBio(e.target.value)} 
+            />
           </div>
           <div className="flex justify-end">
-            <button className="btn-primary" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save Changes'}</button>
+            <button 
+              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+              type="submit" 
+              disabled={saving}
+            >
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
           </div>
         </form>
       </div>
