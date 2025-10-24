@@ -31,7 +31,16 @@ const ForgotPassword = () => {
       const data = await response.json();
 
       if (data.success) {
-        setMessage('Password reset email sent! Please check your inbox and follow the instructions.');
+        if (data.emailSent) {
+          setMessage('Password reset email sent! Please check your inbox and follow the instructions.');
+        } else {
+          setMessage('Password reset token generated. Please check your email or contact support if you don\'t receive it.');
+          // For development: show the token in console
+          if (data.resetToken) {
+            console.log('🔑 Reset token (for development):', data.resetToken);
+            console.log('🔗 Reset URL:', `${window.location.origin}/reset-password?token=${data.resetToken}`);
+          }
+        }
       } else {
         setError(data.message || 'Failed to send password reset email');
       }
@@ -156,6 +165,11 @@ const ForgotPassword = () => {
               try again
             </button>
           </p>
+          {process.env.NODE_ENV === 'development' && (
+            <p className="text-xs text-gray-400 mt-2">
+              Development mode: Check browser console for reset token if email fails
+            </p>
+          )}
         </div>
       </div>
     </div>
