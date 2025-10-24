@@ -67,17 +67,17 @@ const RecentActivity = ({ activities = [] }) => {
   const getStatusColor = (type, status) => {
     switch (type) {
       case 'assignment_submitted':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300';
       case 'module_completed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
       case 'assignment_due':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300';
       case 'grade_received':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
       case 'course_enrolled':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
     }
   };
 
@@ -103,10 +103,10 @@ const RecentActivity = ({ activities = [] }) => {
   return (
     <div className="card">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Activity</h3>
         <Link
           to="/student/activity"
-          className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+          className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium"
         >
           View All
         </Link>
@@ -125,13 +125,13 @@ const RecentActivity = ({ activities = [] }) => {
             
             return (
               <div key={activity._id || activity.id} className="flex items-start space-x-3">
-                <div className={`w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0`}>
+                <div className={`w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0`}>
                   <ActivityIcon className={`w-4 h-4 ${activityColor}`} />
                 </div>
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                       {activity.title}
                     </p>
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(activity.type, activity.status)}`}>
@@ -139,11 +139,11 @@ const RecentActivity = ({ activities = [] }) => {
                     </span>
                   </div>
                   
-                  <p className="text-sm text-gray-600 truncate">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                     {activity.course || activity.courseTitle}
                   </p>
                   
-                  <div className="flex items-center text-xs text-gray-500 mt-1">
+                  <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
                     <ClockIcon className="w-3 h-3 mr-1" />
                     {formatTimestamp(activity.timestamp || activity.createdAt)}
                   </div>

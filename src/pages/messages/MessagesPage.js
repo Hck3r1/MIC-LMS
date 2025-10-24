@@ -78,7 +78,7 @@ const MessagesPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
@@ -89,15 +89,15 @@ const MessagesPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <ChatBubbleLeftRightIcon className="w-8 h-8 text-primary-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
+            <ChatBubbleLeftRightIcon className="w-8 h-8 text-primary-600 dark:text-primary-400" />
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Messages</h1>
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
               {convos.length} conversation{convos.length !== 1 ? 's' : ''}
             </div>
             <button
@@ -112,10 +112,10 @@ const MessagesPage = () => {
 
         {/* New Message Search */}
         {showNewMessage && (
-          <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200">
+          <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 mb-4">
-              <MagnifyingGlassIcon className="w-5 h-5 text-gray-500" />
-              <h3 className="text-lg font-medium text-gray-900">Start a new conversation</h3>
+              <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Start a new conversation</h3>
             </div>
             <div className="relative">
               <input
@@ -123,7 +123,7 @@ const MessagesPage = () => {
                 placeholder="Search for users by name or email..."
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
               />
               {searching && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -138,7 +138,7 @@ const MessagesPage = () => {
                   <Link
                     key={user._id}
                     to={`/messages/with/${user._id}?name=${encodeURIComponent(`${user.firstName} ${user.lastName}`)}`}
-                    className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="flex items-center space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
                     onClick={() => setShowNewMessage(false)}
                   >
                     <div className="flex-shrink-0">
@@ -158,20 +158,20 @@ const MessagesPage = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
-                        <h4 className="text-sm font-medium text-gray-900 truncate">
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                           {user.firstName} {user.lastName}
                         </h4>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                           user.role === 'tutor' 
-                            ? 'bg-blue-100 text-blue-800' 
+                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' 
                             : user.role === 'student'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
                         }`}>
                           {user.role === 'tutor' ? 'Instructor' : user.role === 'student' ? 'Student' : user.role}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 truncate">{user.email}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{user.email}</p>
                     </div>
                   </Link>
                 ))}
@@ -182,9 +182,9 @@ const MessagesPage = () => {
 
         {convos.length === 0 ? (
           <div className="text-center py-12">
-            <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No conversations yet</h3>
-            <p className="text-gray-600">Start a conversation with your instructors or fellow students!</p>
+            <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 dark:text-gray-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No conversations yet</h3>
+            <p className="text-gray-600 dark:text-gray-400">Start a conversation with your instructors or fellow students!</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -194,7 +194,7 @@ const MessagesPage = () => {
                 to={`/messages/with/${convo._id}?name=${encodeURIComponent(`${convo.user.firstName} ${convo.user.lastName}`)}`}
                 className="block"
               >
-                <div className="card hover:bg-gray-50 transition-colors duration-200">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                   <div className="flex items-center space-x-4">
                     {/* Avatar */}
                     <div className="flex-shrink-0">
@@ -217,31 +217,31 @@ const MessagesPage = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <h3 className="text-sm font-medium text-gray-900 truncate">
+                          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                             {convo.user.firstName} {convo.user.lastName}
                           </h3>
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                             convo.user.role === 'tutor' 
-                              ? 'bg-blue-100 text-blue-800' 
+                              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' 
                               : convo.user.role === 'student'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
+                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
                           }`}>
                             {convo.user.role === 'tutor' ? 'Instructor' : convo.user.role === 'student' ? 'Student' : convo.user.role}
                           </span>
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
                           {formatTime(convo.last)}
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                         Click to view conversation
                       </p>
                     </div>
 
                     {/* Arrow */}
                     <div className="flex-shrink-0">
-                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>

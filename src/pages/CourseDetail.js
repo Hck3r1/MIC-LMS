@@ -70,7 +70,7 @@ const CourseDetail = () => {
   }), [currentCourse]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Hero/Banner */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
@@ -109,34 +109,34 @@ const CourseDetail = () => {
           {/* Main content */}
           <div className="lg:col-span-2 space-y-6">
             <div className="card">
-              <h2 className="text-xl font-semibold text-gray-900 mb-3">About this course</h2>
-              <p className="text-gray-700 whitespace-pre-line">{currentCourse?.description || 'No description provided.'}</p>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">About this course</h2>
+              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">{currentCourse?.description || 'No description provided.'}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {currentCourse?.difficulty && (
-                  <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-700 text-xs">{currentCourse.difficulty}</span>
+                  <span className="px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs">{currentCourse.difficulty}</span>
                 )}
                 {currentCourse?.category && (
-                  <span className="px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-xs">{currentCourse.category}</span>
+                  <span className="px-3 py-1 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-xs">{currentCourse.category}</span>
                 )}
               </div>
             </div>
 
             <div className="card">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Curriculum</h2>
-                <span className="text-sm text-gray-600 inline-flex items-center"><AcademicCapIcon className="w-4 h-4 mr-2" />{modules?.length || 0} modules</span>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Curriculum</h2>
+                <span className="text-sm text-gray-600 dark:text-gray-400 inline-flex items-center"><AcademicCapIcon className="w-4 h-4 mr-2" />{modules?.length || 0} modules</span>
               </div>
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 {(modules || []).map((m, idx) => (
                   <div key={m._id || idx} className="py-4">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-gray-900 font-medium">{m.title}</h3>
-                        <p className="text-gray-600 text-sm mt-1">{m.description}</p>
+                        <h3 className="text-gray-900 dark:text-gray-100 font-medium">{m.title}</h3>
+                        <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{m.description}</p>
                       </div>
-                      <span className="text-xs text-gray-500 px-2 py-1 rounded bg-gray-100">Order {m.order || (idx + 1)}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 px-2 py-1 rounded bg-gray-100 dark:bg-gray-700">Order {m.order || (idx + 1)}</span>
                     </div>
-                    <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
+                    <div className="flex items-center gap-4 mt-3 text-sm text-gray-600 dark:text-gray-400">
                       <span className="inline-flex items-center"><PlayCircleIcon className="w-4 h-4 mr-1" /> Videos</span>
                       <span className="inline-flex items-center"><ClipboardDocumentListIcon className="w-4 h-4 mr-1" /> Assignments</span>
                     </div>

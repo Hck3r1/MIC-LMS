@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { CourseProvider } from './contexts/CourseContext';
 import { SubmissionsProvider } from './contexts/SubmissionsContext';
 import { NotificationsProvider } from './contexts/NotificationsContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -30,6 +31,7 @@ import AssignmentsManage from './pages/tutor/AssignmentsManage';
 import AssignmentSubmit from './pages/student/AssignmentSubmit';
 import StudentGrades from './pages/student/StudentGrades';
 import StudentCourses from './pages/student/StudentCourses';
+import Certificates from './pages/student/Certificates';
 import QuizTake from './pages/student/QuizTake';
 import ForumPage from './pages/forums/ForumPage';
 import ThreadPage from './pages/forums/ThreadPage';
@@ -42,12 +44,13 @@ import NotFound from './pages/NotFound';
 
 function App() {
   return (
-    <AuthProvider>
-      <CourseProvider>
-        <SubmissionsProvider>
-        <NotificationsProvider>
-          <Router>
-          <div className="min-h-screen bg-gray-50 flex flex-col">
+    <ThemeProvider>
+      <AuthProvider>
+        <CourseProvider>
+          <SubmissionsProvider>
+          <NotificationsProvider>
+            <Router>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
             <Navbar />
             <main className="flex-grow">
               <Routes>
@@ -85,6 +88,11 @@ function App() {
                 <Route path="/student/grades" element={
                   <ProtectedRoute allowedRoles={['student','admin']}>
                     <StudentGrades />
+                  </ProtectedRoute>
+                } />
+                <Route path="/student/certificates" element={
+                  <ProtectedRoute allowedRoles={['student','admin']}>
+                    <Certificates />
                   </ProtectedRoute>
                 } />
                 <Route path="/tutor/*" element={
@@ -161,10 +169,11 @@ function App() {
             <Footer />
           </div>
         </Router>
-        </NotificationsProvider>
-      </SubmissionsProvider>
-      </CourseProvider>
-    </AuthProvider>
+          </NotificationsProvider>
+        </SubmissionsProvider>
+        </CourseProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

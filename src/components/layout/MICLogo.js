@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 
-const MICLogo = ({ className = "w-8 h-8", showText = true, textClassName = "text-xl font-bold text-gray-900" }) => {
+const MICLogo = ({ className = "w-8 h-8", showText = true, textClassName = "text-xl font-bold text-gray-900 dark:text-gray-100" }) => {
   const [imageError, setImageError] = useState(false);
 
   return (
     <div className="flex items-center space-x-2">
-      <div className={`${className} rounded-lg overflow-hidden flex items-center justify-center bg-white border border-gray-200`}>
+      <div className={`${className} rounded-lg overflow-hidden flex items-center justify-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700`}>
         {!imageError ? (
           <img 
             src="/oyo_logo.png" 

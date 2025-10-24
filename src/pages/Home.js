@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import MICLogo from '../components/layout/MICLogo';
 import {
   AcademicCapIcon,
@@ -13,6 +14,7 @@ import {
 
 const Home = () => {
   const { isAuthenticated, user } = useAuth();
+  const { theme, isDark } = useTheme();
 
   const features = [
     {
@@ -72,7 +74,7 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 gradient-bg opacity-95" />
@@ -94,7 +96,7 @@ const Home = () => {
                 {isAuthenticated ? (
                   <Link
                     to={user?.role === 'student' ? '/student/dashboard' : '/tutor/dashboard'}
-                    className="bg-white text-primary-600 hover:bg-gray-50 font-semibold py-3 px-8 rounded-lg transition-colors duration-200 inline-flex items-center justify-center"
+                    className="bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold py-3 px-8 rounded-lg transition-colors duration-200 inline-flex items-center justify-center"
                   >
                     Go to Dashboard
                     <ArrowRightIcon className="w-5 h-5 ml-2" />
@@ -103,14 +105,14 @@ const Home = () => {
                   <>
                     <Link
                       to="/register"
-                      className="bg-white text-primary-600 hover:bg-gray-50 font-semibold py-3 px-8 rounded-lg transition-colors duration-200 inline-flex items-center justify-center"
+                      className="bg-white dark:bg-gray-800 text-primary-600 dark:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700 font-semibold py-3 px-8 rounded-lg transition-colors duration-200 inline-flex items-center justify-center"
                     >
                       Get Started Free
                       <ArrowRightIcon className="w-5 h-5 ml-2" />
                     </Link>
                     <Link
                       to="/courses"
-                    className="border-2 border-white text-white hover:bg-white hover:text-primary-700 font-semibold py-3 px-8 rounded-lg transition-colors duration-200 inline-flex items-center justify-center"
+                    className="border-2 border-white dark:border-gray-300 text-white dark:text-gray-300 hover:bg-white dark:hover:bg-gray-800 hover:text-primary-700 dark:hover:text-primary-400 font-semibold py-3 px-8 rounded-lg transition-colors duration-200 inline-flex items-center justify-center"
                     >
                       Browse Courses
                       <PlayIcon className="w-5 h-5 ml-2" />

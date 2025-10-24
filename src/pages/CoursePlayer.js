@@ -11,7 +11,7 @@ const YouTubeEmbed = ({ url, startSeconds = 0 }) => {
   
   if (!videoId) {
     return (
-      <div className="text-gray-600 p-4 border border-gray-300 rounded-lg">
+      <div className="text-gray-600 dark:text-gray-400 p-4 border border-gray-300 dark:border-gray-600 rounded-lg">
         <p>Invalid YouTube URL: {url}</p>
         <p>Could not extract video ID</p>
       </div>
@@ -34,7 +34,7 @@ const YouTubeEmbed = ({ url, startSeconds = 0 }) => {
 };
 
 const PdfViewer = ({ url }) => {
-  if (!url) return <div className="text-gray-600">No PDF provided</div>;
+  if (!url) return <div className="text-gray-600 dark:text-gray-400">No PDF provided</div>;
   return (
     <div className="w-full h-[60vh]">
       <iframe title="PDF" src={url} className="w-full h-full rounded-lg border" />
@@ -43,7 +43,7 @@ const PdfViewer = ({ url }) => {
 };
 
 const TextViewer = ({ text }) => {
-  if (!text) return <div className="text-gray-600">No text content</div>;
+  if (!text) return <div className="text-gray-600 dark:text-gray-400">No text content</div>;
   return (
     <div className="prose max-w-none">
       <pre className="whitespace-pre-wrap text-gray-800">{text}</pre>
@@ -53,7 +53,7 @@ const TextViewer = ({ text }) => {
 
 const ImageGallery = ({ files }) => {
   const imgs = Array.isArray(files) ? files.filter(f => (f.fileType || '').startsWith('image') || /\.(png|jpe?g|gif|webp|svg)$/i.test(f.url || '')) : [];
-  if (!imgs.length) return <div className="text-gray-600">No images</div>;
+  if (!imgs.length) return <div className="text-gray-600 dark:text-gray-400">No images</div>;
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
       {imgs.map((img, idx) => (
@@ -102,7 +102,31 @@ const CoursePlayer = () => {
   const [moduleProgress, setModuleProgress] = useState({});
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
   const [submissionData, setSubmissionData] = useState({});
+  const [isContentLoading, setIsContentLoading] = useState(false);
   const trackRef = useRef(null);
+
+  // Handle module switching with loading state
+  const handleModuleSwitch = (moduleIdx) => {
+    setIsContentLoading(true);
+    setActiveModuleIdx(moduleIdx);
+    setActiveContentIdx(0);
+    
+    // Simulate loading time for better UX
+    setTimeout(() => {
+      setIsContentLoading(false);
+    }, 500);
+  };
+
+  // Handle content switching with loading state
+  const handleContentSwitch = (contentIdx) => {
+    setIsContentLoading(true);
+    setActiveContentIdx(contentIdx);
+    
+    // Simulate loading time for better UX
+    setTimeout(() => {
+      setIsContentLoading(false);
+    }, 300);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -399,15 +423,23 @@ const CoursePlayer = () => {
   }, [id, activeModule?._id]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
-          <h1 className="text-2xl font-bold text-gray-900">{currentCourse?.title || 'Course Player'}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{currentCourse?.title || 'Course Player'}</h1>
           <div className="card">
-            {!activeContent && (
-              <div className="text-gray-600">No content in this module.</div>
+            {isContentLoading && (
+              <div className="flex items-center justify-center py-12">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">Loading content...</p>
+                </div>
+              </div>
             )}
-            {activeContent?.type === 'video' && (
+            {!isContentLoading && !activeContent && (
+              <div className="text-gray-600 dark:text-gray-400">No content in this module.</div>
+            )}
+            {!isContentLoading && activeContent?.type === 'video' && (
               <div>
                 <h3 className="text-lg font-semibold mb-4">{activeContent.title || 'Video'}</h3>
                 {isYouTubeUrl(activeContent.url) ? (
@@ -419,13 +451,13 @@ const CoursePlayer = () => {
                 )}
               </div>
             )}
-            {activeContent?.type === 'pdf' && (
+            {!isContentLoading && activeContent?.type === 'pdf' && (
               <PdfViewer url={activeContent.url} />
             )}
-            {activeContent?.type === 'text' && (
+            {!isContentLoading && activeContent?.type === 'text' && (
               <TextViewer text={activeContent.text || activeContent.body || activeContent.content} />
             )}
-            {activeContent?.type === 'image' && (
+            {!isContentLoading && activeContent?.type === 'image' && (
               Array.isArray(activeContent.files) && activeContent.files.length > 0
                 ? <ImageGallery files={activeContent.files} />
                 : <ImageGallery files={[{ url: activeContent.url, filename: activeContent.title || 'image', fileType: activeContent.fileType || '' }]} />
@@ -436,7 +468,7 @@ const CoursePlayer = () => {
           {activeModule && (
             <div className="card">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Module Progress</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Module Progress</h2>
                 {moduleProgress[activeModule._id]?.isCompleted && (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                     ✓ Completed
@@ -506,33 +538,63 @@ const CoursePlayer = () => {
                   
                   {/* Assignment Status Summary */}
                   {assignments && assignments.length > 0 && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <h4 className="text-sm font-medium text-gray-900 mb-2">Assignment Status</h4>
-                      <div className="space-y-2">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Assignment Status</h4>
+                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                          <span className="w-2 h-2 bg-blue-500 rounded-full mr-1"></span>
+                          {assignmentStatus.assignmentStatuses?.filter(a => a.hasSubmissions).length || 0} of {assignments.length} submitted
+                        </div>
+                      </div>
+                      <div className="space-y-3">
                         {assignmentStatus.assignmentStatuses?.map((assignment, idx) => {
                           const latestSubmission = assignment.submissions?.[0]; // Get the latest submission
+                          const isOverdue = assignment.dueDate && new Date(assignment.dueDate) < new Date() && !assignment.hasSubmissions;
+                          const isDueSoon = assignment.dueDate && new Date(assignment.dueDate) <= new Date(Date.now() + 24 * 60 * 60 * 1000) && !assignment.hasSubmissions;
+                          
                           return (
-                            <div key={assignment.id || idx} className="flex items-center justify-between text-sm">
-                              <span className="text-gray-700 flex-1 truncate">{assignment.title}</span>
-                              <div className="flex items-center gap-2">
+                            <div key={assignment.id || idx} className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-sm transition-shadow">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{assignment.title}</span>
+                                  {isOverdue && (
+                                    <span className="text-xs text-red-500 dark:text-red-400 font-medium">OVERDUE</span>
+                                  )}
+                                  {isDueSoon && !isOverdue && (
+                                    <span className="text-xs text-yellow-600 dark:text-yellow-400 font-medium">DUE SOON</span>
+                                  )}
+                                </div>
+                                {assignment.dueDate && (
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    Due: {new Date(assignment.dueDate).toLocaleDateString()} at {new Date(assignment.dueDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 ml-3">
                                 {assignment.hasSubmissions && (
-                                  <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                                    Submitted
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                                    ✓ Submitted
                                   </span>
                                 )}
                                 {assignment.isGraded && latestSubmission?.grade !== null && (
-                                  <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                                    Graded ({latestSubmission.grade}%)
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                                    {latestSubmission.grade}% Grade
                                   </span>
                                 )}
                                 {!assignment.hasSubmissions && (
-                                  <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
-                                    Not Submitted
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    isOverdue 
+                                      ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+                                      : isDueSoon
+                                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+                                      : 'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-300'
+                                  }`}>
+                                    {isOverdue ? 'Overdue' : isDueSoon ? 'Due Soon' : 'Not Submitted'}
                                   </span>
                                 )}
                                 {assignment.hasSubmissions && !assignment.isGraded && (
-                                  <span className="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
-                                    Awaiting Grade
+                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
+                                    ⏳ Awaiting Grade
                                   </span>
                                 )}
                               </div>
@@ -548,78 +610,102 @@ const CoursePlayer = () => {
           )}
           
           <div className="card">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Module Description</h2>
-            <p className="text-gray-700">{activeModule?.description || 'No description'}</p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Module Description</h2>
+            <p className="text-gray-700 dark:text-gray-300">{activeModule?.description || 'No description'}</p>
           </div>
           <div className="card">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Assignments</h2>
-            <ul className="divide-y divide-gray-100">
-              {(assignments || []).map((a) => {
-                const submissions = submissionData[a._id] || [];
-                const latestSubmission = submissions[0]; // Most recent submission
-                const hasSubmissions = submissions.length > 0;
-                const isGraded = hasSubmissions && latestSubmission?.status === 'graded' && latestSubmission?.grade !== null;
-                
-                // Debug logging
-                console.log(`Assignment ${a.title}:`, {
-                  assignmentId: a._id,
-                  submissions: submissions.length,
-                  hasSubmissions,
-                  isGraded,
-                  latestSubmission: latestSubmission ? {
-                    status: latestSubmission.status,
-                    grade: latestSubmission.grade,
-                    gradePercentage: latestSubmission.gradePercentage
-                  } : null,
-                  submissionData: submissionData
-                });
-                
-                return (
-                  <li key={a._id} className="py-3 flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="text-gray-900 font-medium">{a.title}</div>
-                      <div className="text-sm text-gray-600">Due: {a.dueDate ? new Date(a.dueDate).toLocaleString() : '—'}</div>
-                      {hasSubmissions && (
-                        <div className="mt-1 flex items-center gap-2">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            isGraded 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {isGraded ? `Graded (${latestSubmission.grade}/${a.maxPoints})` : 'Submitted'}
-                          </span>
-                          {isGraded && latestSubmission.gradePercentage && (
-                            <span className="text-xs text-gray-500">
-                              {latestSubmission.gradePercentage}%
-                            </span>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Assignments</h2>
+              {assignments && assignments.length > 0 && (
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  {assignments.length} assignment{assignments.length !== 1 ? 's' : ''}
+                </div>
+              )}
+            </div>
+            {assignments && assignments.length > 0 ? (
+              <div className="space-y-3">
+                {assignments.map((a) => {
+                  const submissions = submissionData[a._id] || [];
+                  const latestSubmission = submissions[0]; // Most recent submission
+                  const hasSubmissions = submissions.length > 0;
+                  const isGraded = hasSubmissions && latestSubmission?.status === 'graded' && latestSubmission?.grade !== null;
+                  const isOverdue = a.dueDate && new Date(a.dueDate) < new Date() && !hasSubmissions;
+                  const isDueSoon = a.dueDate && new Date(a.dueDate) <= new Date(Date.now() + 24 * 60 * 60 * 1000) && !hasSubmissions;
+                  
+                  return (
+                    <div key={a._id} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-sm transition-shadow">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{a.title}</h3>
+                            {isOverdue && (
+                              <span className="text-xs text-red-500 dark:text-red-400 font-medium bg-red-100 dark:bg-red-900/30 px-2 py-1 rounded-full">OVERDUE</span>
+                            )}
+                            {isDueSoon && !isOverdue && (
+                              <span className="text-xs text-yellow-600 dark:text-yellow-400 font-medium bg-yellow-100 dark:bg-yellow-900/30 px-2 py-1 rounded-full">DUE SOON</span>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                            Due: {a.dueDate ? new Date(a.dueDate).toLocaleDateString() + ' at ' + new Date(a.dueDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'No due date'}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            Max Points: {a.maxPoints || 'N/A'}
+                          </div>
+                          {hasSubmissions && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                isGraded 
+                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
+                                  : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+                              }`}>
+                                {isGraded ? `✓ Graded (${latestSubmission.grade}/${a.maxPoints})` : '⏳ Submitted - Awaiting Grade'}
+                              </span>
+                              {isGraded && latestSubmission.gradePercentage && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                  {latestSubmission.gradePercentage}%
+                                </span>
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
+                        <div className="flex items-center gap-2 ml-4">
+                          {hasSubmissions ? (
+                            <a 
+                              href={`/assignments/${a._id}/submit`} 
+                              className="btn-outline text-sm px-3 py-1"
+                            >
+                              {isGraded ? 'View Grade' : 'View Submission'}
+                            </a>
+                          ) : (
+                            <a 
+                              href={`/assignments/${a._id}/submit`} 
+                              className={`text-sm px-3 py-1 rounded-md font-medium transition-colors ${
+                                isOverdue 
+                                  ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50'
+                                  : isDueSoon
+                                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
+                                  : 'btn-primary'
+                              }`}
+                            >
+                              {isOverdue ? 'Submit (Overdue)' : isDueSoon ? 'Submit (Due Soon)' : 'Submit Assignment'}
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {hasSubmissions ? (
-                        <a 
-                          href={`/assignments/${a._id}/submit`} 
-                          className="btn-outline text-sm"
-                        >
-                          {isGraded ? 'View Grade' : 'View Submission'}
-                        </a>
-                      ) : (
-                        <a 
-                          href={`/assignments/${a._id}/submit`} 
-                          className="btn-outline text-sm"
-                        >
-                          Submit
-                        </a>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-              {(!assignments || assignments.length === 0) && (
-                <li className="py-3 text-sm text-gray-600">No assignments for this module.</li>
-              )}
-            </ul>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-gray-500 dark:text-gray-400 mb-2">
+                  <svg className="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400">No assignments for this module.</p>
+              </div>
+            )}
           </div>
           {activeContent?.type === 'video' && Array.isArray(activeContent?.chapters) && activeContent.chapters.length > 0 && (
             <div className="card">
@@ -637,7 +723,7 @@ const CoursePlayer = () => {
         </div>
         <div className="space-y-4">
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Modules</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Modules</h3>
             <div className="space-y-4">
               <ul className="divide-y divide-gray-100">
                 {(modules || []).map((m, idx) => {
@@ -645,16 +731,19 @@ const CoursePlayer = () => {
                   const isCompleted = progress?.isCompleted || false;
                   
                   return (
-                    <li key={m._id || idx} className={`py-3 px-2 rounded cursor-pointer ${idx === activeModuleIdx ? 'bg-primary-50' : 'hover:bg-gray-50'}`} onClick={() => { setActiveModuleIdx(idx); setActiveContentIdx(0); }}>
+                    <li key={m._id || idx} className={`py-3 px-2 rounded cursor-pointer ${idx === activeModuleIdx ? 'bg-primary-50 dark:bg-primary-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} ${isContentLoading && idx === activeModuleIdx ? 'opacity-75' : ''}`} onClick={() => handleModuleSwitch(idx)}>
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <div className="text-gray-900 font-medium flex items-center gap-2">
+                          <div className="text-gray-900 dark:text-gray-100 font-medium flex items-center gap-2">
                             {isCompleted && (
                               <span className="text-green-600">✓</span>
                             )}
+                            {isContentLoading && idx === activeModuleIdx && (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-600 mr-2"></div>
+                            )}
                             {m.title}
                           </div>
-                          <div className="text-sm text-gray-600">{m.description}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">{m.description}</div>
                         </div>
                         {isCompleted && (
                           <span className="text-xs text-green-600 font-medium">Completed</span>
@@ -697,33 +786,36 @@ const CoursePlayer = () => {
                       : null;
                     
                     return (
-                      <li key={cIdx} className={`px-2 py-2 rounded text-sm cursor-pointer ${cIdx === activeContentIdx ? 'bg-primary-50' : 'hover:bg-gray-50'}`} onClick={() => setActiveContentIdx(cIdx)}>
+                      <li key={cIdx} className={`px-2 py-2 rounded text-sm cursor-pointer ${cIdx === activeContentIdx ? 'bg-primary-50 dark:bg-primary-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} ${isContentLoading && cIdx === activeContentIdx ? 'opacity-75' : ''}`} onClick={() => handleContentSwitch(cIdx)}>
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="uppercase text-xs text-gray-500 flex-shrink-0">{c.type}</span>
+                              {isContentLoading && cIdx === activeContentIdx && (
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-600 mr-1"></div>
+                              )}
+                              <span className="uppercase text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">{c.type}</span>
                               {c.type === 'video' && c.duration > 0 && (
-                                <span className="text-xs text-gray-500 flex-shrink-0">
+                                <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
                                   {Math.floor(c.duration / 60)}:{(c.duration % 60).toString().padStart(2, '0')}
                                 </span>
                               )}
                             </div>
-                            <div className="text-gray-800 text-sm leading-tight break-words">
+                            <div className="text-gray-800 dark:text-gray-200 text-sm leading-tight break-words">
                               {displayTitle}
                             </div>
                           </div>
                         </div>
                         {c.type === 'video' && metadata?.author && (
-                          <div className="text-xs text-gray-500 mt-1">by {metadata.author}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">by {metadata.author}</div>
                         )}
                         {c.type === 'video' && !metadata?.title && videoId && (
-                          <div className="text-xs text-gray-500 mt-1">YouTube Video</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">YouTube Video</div>
                         )}
                       </li>
                     );
                   })}
                   {(!activeModule?.content || activeModule.content.length === 0) && (
-                    <li className="text-sm text-gray-600">No contents in this module.</li>
+                    <li className="text-sm text-gray-600 dark:text-gray-400">No contents in this module.</li>
                   )}
                 </ul>
               </div>
