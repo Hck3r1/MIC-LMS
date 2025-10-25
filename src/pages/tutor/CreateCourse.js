@@ -268,36 +268,36 @@ const CreateCourse = () => {
   };
 
   // UI helper classes
-  const inputClass = "block w-full rounded-xl border border-gray-200 bg-white/70 backdrop-blur-sm px-4 py-3 shadow-sm focus:ring-4 focus:ring-primary-100 focus:border-primary-500 placeholder-gray-400 transition";
+  const inputClass = "block w-full rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-4 py-3 shadow-sm focus:ring-4 focus:ring-primary-100 dark:focus:ring-primary-900/30 focus:border-primary-500 dark:focus:border-primary-400 placeholder-gray-400 dark:placeholder-gray-500 transition";
   const selectClass = inputClass;
-  const textAreaClass = "block w-full rounded-xl border border-gray-200 bg-white/70 backdrop-blur-sm px-4 py-3 shadow-sm focus:ring-4 focus:ring-primary-100 focus:border-primary-500 placeholder-gray-400 transition resize-none";
+  const textAreaClass = "block w-full rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-4 py-3 shadow-sm focus:ring-4 focus:ring-primary-100 dark:focus:ring-primary-900/30 focus:border-primary-500 dark:focus:border-primary-400 placeholder-gray-400 dark:placeholder-gray-500 transition resize-none";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => navigate('/tutor/dashboard')}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+            className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4 transition-colors"
           >
             <ArrowLeftIcon className="w-5 h-5 mr-2" />
             Back to Dashboard
           </button>
           
-          <h1 className="text-3xl font-bold text-gray-900">Create New Course</h1>
-          <p className="text-gray-600 mt-2">Share your knowledge and create an engaging learning experience</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create New Course</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Share your knowledge and create an engaging learning experience</p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6">
             {error}
           </div>
         )}
 
         {fieldErrors.length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-400 px-4 py-3 rounded-lg mb-6">
             <div className="font-semibold mb-2">Please fix the following:</div>
             <ul className="list-disc list-inside space-y-1 text-sm">
               {fieldErrors.map((e, idx) => (
@@ -309,12 +309,12 @@ const CreateCourse = () => {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Basic Information</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Basic Information</h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="lg:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Course Title *
                 </label>
                 <input
@@ -329,7 +329,7 @@ const CreateCourse = () => {
               </div>
 
               <div className="lg:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Course Description *
                 </label>
                 <textarea
@@ -344,7 +344,7 @@ const CreateCourse = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Category *
                 </label>
                 <select
@@ -364,7 +364,7 @@ const CreateCourse = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Difficulty Level *
                 </label>
                 <select
@@ -383,7 +383,7 @@ const CreateCourse = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Duration (hours) *
                 </label>
                 <input
@@ -403,16 +403,16 @@ const CreateCourse = () => {
           </div>
 
           {/* Course Media */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Course Media</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Course Media</h2>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Thumbnail Upload */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Course Thumbnail
                 </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
                   {thumbnailPreview ? (
                     <div className="relative">
                       <img
@@ -423,15 +423,15 @@ const CreateCourse = () => {
                       <button
                         type="button"
                         onClick={() => removeFile('thumbnail')}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
                       >
                         <XMarkIcon className="w-4 h-4" />
                       </button>
                     </div>
                   ) : (
                     <div>
-                      <PhotoIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-sm text-gray-600 mb-2">
+                      <PhotoIcon className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         Upload a thumbnail image
                       </p>
                       <input
@@ -443,7 +443,7 @@ const CreateCourse = () => {
                       />
                       <label
                         htmlFor="thumbnail-upload"
-                        className="btn-outline cursor-pointer"
+                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer"
                       >
                         Choose File
                       </label>
@@ -454,10 +454,10 @@ const CreateCourse = () => {
 
               {/* Banner Upload */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Course Banner
                 </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
                   {bannerPreview ? (
                     <div className="relative">
                       <img
@@ -468,15 +468,15 @@ const CreateCourse = () => {
                       <button
                         type="button"
                         onClick={() => removeFile('banner')}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
                       >
                         <XMarkIcon className="w-4 h-4" />
                       </button>
                     </div>
                   ) : (
                     <div>
-                      <DocumentIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-sm text-gray-600 mb-2">
+                      <DocumentIcon className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         Upload a banner image
                       </p>
                       <input
@@ -488,7 +488,7 @@ const CreateCourse = () => {
                       />
                       <label
                         htmlFor="banner-upload"
-                        className="btn-outline cursor-pointer"
+                        className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer"
                       >
                         Choose File
                       </label>
@@ -500,49 +500,49 @@ const CreateCourse = () => {
           </div>
 
           {/* Modules Builder */}
-          <div className="card">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Modules</h2>
-              <button type="button" className="btn-outline inline-flex items-center" onClick={addModule}>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Modules</h2>
+              <button type="button" className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors inline-flex items-center" onClick={addModule}>
                 <PlusIcon className="w-5 h-5 mr-2" /> Add Module
               </button>
             </div>
 
             <div className="space-y-6">
               {modules.map((m, idx) => (
-                <div key={idx} className="border rounded-lg p-4">
+                <div key={idx} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Module {idx + 1}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Module {idx + 1}</h3>
                     {modules.length > 1 && (
-                      <button type="button" className="text-red-600 hover:underline text-sm" onClick={() => removeModule(idx)}>Remove</button>
+                      <button type="button" className="text-red-600 dark:text-red-400 hover:underline text-sm transition-colors" onClick={() => removeModule(idx)}>Remove</button>
                     )}
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
                       <input className={inputClass} value={m.title} onChange={(e) => updateModuleField(idx, 'title', e.target.value)} placeholder="Module title" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Order</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Order</label>
                       <input type="number" min="1" className={inputClass} value={m.order} onChange={(e) => updateModuleField(idx, 'order', parseInt(e.target.value || '1'))} />
                     </div>
                     <div className="lg:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
                       <textarea rows={3} className={textAreaClass} value={m.description} onChange={(e) => updateModuleField(idx, 'description', e.target.value)} placeholder="What will this module cover?" />
                     </div>
                   </div>
 
                   <div className="mt-4">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-gray-900">YouTube Videos</h4>
-                      <button type="button" className="text-primary-600 hover:underline text-sm" onClick={() => addModuleVideo(idx)}>Add link</button>
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100">YouTube Videos</h4>
+                      <button type="button" className="text-primary-600 dark:text-primary-400 hover:underline text-sm transition-colors" onClick={() => addModuleVideo(idx)}>Add link</button>
                     </div>
                     <div className="space-y-2">
                       {m.videos.map((v, vi) => (
                         <div key={vi} className="flex items-center space-x-2">
                           <input className={`${inputClass} flex-1`} placeholder="https://www.youtube.com/watch?v=..." value={v} onChange={(e) => updateModuleVideo(idx, vi, e.target.value)} />
                           {m.videos.length > 1 && (
-                            <button type="button" className="btn-outline" onClick={() => removeModuleVideo(idx, vi)}>Remove</button>
+                            <button type="button" className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors" onClick={() => removeModuleVideo(idx, vi)}>Remove</button>
                           )}
                         </div>
                       ))}
@@ -551,19 +551,19 @@ const CreateCourse = () => {
 
                   <div className="mt-6">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-gray-900">Assignments</h4>
-                      <button type="button" className="text-primary-600 hover:underline text-sm" onClick={() => addModuleAssignment(idx)}>Add assignment</button>
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100">Assignments</h4>
+                      <button type="button" className="text-primary-600 dark:text-primary-400 hover:underline text-sm transition-colors" onClick={() => addModuleAssignment(idx)}>Add assignment</button>
                     </div>
                     <div className="space-y-4">
                       {(m.assignments || []).map((a, ai) => (
-                        <div key={ai} className="border rounded-lg p-3">
+                        <div key={ai} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 bg-white dark:bg-gray-800">
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
                               <input className={inputClass} value={a.title} onChange={(e) => updateModuleAssignment(idx, ai, 'title', e.target.value)} placeholder="Assignment title" />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
                               <select className={selectClass} value={a.type} onChange={(e) => updateModuleAssignment(idx, ai, 'type', e.target.value)}>
                                 <option value="file_upload">File Upload</option>
                                 <option value="text_submission">Text Submission</option>
@@ -573,25 +573,25 @@ const CreateCourse = () => {
                               </select>
                             </div>
                             <div className="lg:col-span-2">
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
                               <textarea rows={2} className={textAreaClass} value={a.description} onChange={(e) => updateModuleAssignment(idx, ai, 'description', e.target.value)} placeholder="Short description" />
                             </div>
                             <div className="lg:col-span-2">
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Instructions</label>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instructions</label>
                               <textarea rows={3} className={textAreaClass} value={a.instructions} onChange={(e) => updateModuleAssignment(idx, ai, 'instructions', e.target.value)} placeholder="Detailed instructions for students" />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Due Date</label>
                               <input type="datetime-local" className={inputClass} value={a.dueDate} onChange={(e) => updateModuleAssignment(idx, ai, 'dueDate', e.target.value)} />
                             </div>
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Max Points</label>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max Points</label>
                               <input type="number" min="1" className={inputClass} value={a.maxPoints} onChange={(e) => updateModuleAssignment(idx, ai, 'maxPoints', e.target.value)} />
                             </div>
                           </div>
                           {m.assignments.length > 1 && (
                             <div className="mt-2 text-right">
-                              <button type="button" className="text-red-600 hover:underline text-sm" onClick={() => removeModuleAssignment(idx, ai)}>Remove assignment</button>
+                              <button type="button" className="text-red-600 dark:text-red-400 hover:underline text-sm transition-colors" onClick={() => removeModuleAssignment(idx, ai)}>Remove assignment</button>
                             </div>
                           )}
                         </div>
@@ -604,18 +604,18 @@ const CreateCourse = () => {
           </div>
 
           {/* Course Details */}
-          <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Course Details</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Course Details</h2>
             
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Prerequisites
                 </label>
                 <textarea
                   name="prerequisites"
                   rows={3}
-                  className="input-field"
+                  className={textAreaClass}
                   value={formData.prerequisites}
                   onChange={handleChange}
                   placeholder="What should students know before taking this course?"
@@ -623,13 +623,13 @@ const CreateCourse = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Learning Objectives
                 </label>
                 <textarea
                   name="learningObjectives"
                   rows={4}
-                  className="input-field"
+                  className={textAreaClass}
                   value={formData.learningObjectives}
                   onChange={handleChange}
                   placeholder="What will students be able to do after completing this course?"
@@ -637,13 +637,13 @@ const CreateCourse = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Target Audience
                 </label>
                 <textarea
                   name="targetAudience"
                   rows={3}
-                  className="input-field"
+                  className={textAreaClass}
                   value={formData.targetAudience}
                   onChange={handleChange}
                   placeholder="Who is this course designed for?"
@@ -657,14 +657,14 @@ const CreateCourse = () => {
             <button
               type="button"
               onClick={() => navigate('/tutor/dashboard')}
-              className="btn-outline"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-primary"
+              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
             >
               {loading ? (
