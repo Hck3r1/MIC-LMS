@@ -39,6 +39,7 @@ import MessagesPage from './pages/messages/MessagesPage';
 import ConversationPage from './pages/messages/ConversationPage';
 import GradeSubmissions from './pages/tutor/GradeSubmissions';
 import SubmissionGrade from './pages/tutor/SubmissionGrade';
+import StudentProgress from './pages/tutor/StudentProgress';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 
@@ -143,6 +144,11 @@ function App() {
                 <Route path="/tutor/courses/:id/edit" element={
                   <ProtectedRoute allowedRoles={['tutor', 'admin']}>
                     <EditCourse />
+                  </ProtectedRoute>
+                } />
+                <Route path="/tutor/students/progress" element={
+                  <ProtectedRoute allowedRoles={['tutor', 'admin']}>
+                    <StudentProgress />
                   </ProtectedRoute>
                 } />
                 <Route path="/profile" element={

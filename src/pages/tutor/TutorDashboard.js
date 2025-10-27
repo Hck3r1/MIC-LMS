@@ -52,6 +52,10 @@ const TutorDashboard = () => {
             </div>
             
             <div className="flex items-center space-x-3">
+              <button className="btn-outline flex items-center" onClick={() => navigate('/tutor/students/progress')}>
+                <UsersIcon className="w-4 h-4 mr-2" />
+                Student Progress
+              </button>
               <button className="btn-outline flex items-center" onClick={() => navigate('/tutor/notifications')}>
                 <BellIcon className="w-4 h-4 mr-2" />
                 Notifications
