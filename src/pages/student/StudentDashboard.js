@@ -83,6 +83,7 @@ const StudentDashboard = () => {
   const [progressData, setProgressData] = useState([]);
   const [courseBreakdown, setCourseBreakdown] = useState([]);
   const [categoryBreakdown, setCategoryBreakdown] = useState([]);
+  const [courseProgressById, setCourseProgressById] = useState({});
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -142,6 +143,13 @@ const StudentDashboard = () => {
           // Calculate average grade from submissions
           const averageGrade = await calculateAverageGrade();
           
+          // Build a map of courseId -> progressPercentage for quick lookup
+          const progressById = {};
+          (data.data.courses || []).forEach(c => {
+            const cid = (c.courseId?._id || c.courseId || '').toString();
+            if (cid) progressById[cid] = c.progressPercentage || 0;
+          });
+
           setStats(prev => ({
             ...prev,
             totalCourses,
@@ -157,6 +165,9 @@ const StudentDashboard = () => {
             name: course.courseTitle,
             progress: course.progressPercentage
           })));
+
+          // Save map for the course cards
+          setCourseProgressById(progressById);
         }
       }
     } catch (error) {
@@ -451,7 +462,8 @@ const StudentDashboard = () => {
               );
               return courses.slice(0, 6).map((course) => {
                 const isEnrolled = enrolledIds.has(course._id) || !!course.isEnrolled;
-                const enrollmentObj = isEnrolled ? { progress: 0 } : null;
+                const progress = courseProgressById[course._id] ?? 0;
+                const enrollmentObj = isEnrolled ? { progress } : null;
                 return (
                   <CourseCard
                     key={course._id}
