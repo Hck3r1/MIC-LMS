@@ -407,18 +407,27 @@ const CoursePlayer = () => {
     loadVideoMetadata();
   }, [activeModule]);
 
-  // Time tracking ping every 30s while viewing
+  // Time tracking ping while viewing (reduced frequency and only when tab is visible/focused)
   useEffect(() => {
     if (!id) return;
     if (!activeModule?._id) return;
     const headers = { Authorization: `Bearer ${localStorage.getItem('token') || ''}` };
+
+    const INTERVAL_SECONDS = 60; // send every 60s
+
     const tick = async () => {
+      // Only send when page is visible and window has focus
+      const isVisible = typeof document !== 'undefined' ? document.visibilityState === 'visible' : true;
+      const isFocused = typeof document !== 'undefined' ? document.hasFocus() : true;
+      if (!isVisible || !isFocused) return;
       try {
-        await axios.post(`${API_URL}/courses/${id}/track`, { moduleId: activeModule._id, seconds: 30 }, { headers });
+        await axios.post(`${API_URL}/courses/${id}/track`, { moduleId: activeModule._id, seconds: INTERVAL_SECONDS }, { headers });
       } catch (_) { /* ignore */ }
     };
+
+    // Initial tick (guarded by visibility/focus)
     tick();
-    const handle = setInterval(tick, 30000);
+    const handle = setInterval(tick, INTERVAL_SECONDS * 1000);
     return () => clearInterval(handle);
   }, [id, activeModule?._id]);
 

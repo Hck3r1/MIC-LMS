@@ -32,6 +32,10 @@ const AssignmentSubmit = () => {
   const [existingSubmission, setExistingSubmission] = useState(null);
   const [assignment, setAssignment] = useState(null);
   const [loadingSubmission, setLoadingSubmission] = useState(true);
+  
+  // Check if assignment is past due
+  const isPastDue = assignment?.dueDate ? new Date() > new Date(assignment.dueDate) : false;
+  const canSubmit = assignment ? (!isPastDue || assignment.allowLateSubmission) : true;
 
   // Fetch existing submission and assignment details
   useEffect(() => {
@@ -114,6 +118,13 @@ const AssignmentSubmit = () => {
     setLoading(true);
     setError('');
     setSuccess(false);
+    
+    // Check if submission is allowed
+    if (isPastDue && !assignment?.allowLateSubmission) {
+      setError('This assignment\'s due date has passed and late submissions are not allowed.');
+      setLoading(false);
+      return;
+    }
     
     // Debug logging
     console.log('Submitting assignment with:', {
@@ -493,10 +504,71 @@ const AssignmentSubmit = () => {
           )}
         </div>
 
+        {/* Assignment Due Date Info */}
+        {assignment && (
+          <div className={`rounded-xl shadow-sm border p-6 mb-6 ${
+            isPastDue && !assignment.allowLateSubmission
+              ? 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
+              : isPastDue && assignment.allowLateSubmission
+              ? 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800'
+              : 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <ClockIcon className={`w-5 h-5 mr-2 ${
+                  isPastDue && !assignment.allowLateSubmission
+                    ? 'text-red-600 dark:text-red-400'
+                    : isPastDue && assignment.allowLateSubmission
+                    ? 'text-yellow-600 dark:text-yellow-400'
+                    : 'text-blue-600 dark:text-blue-400'
+                }`} />
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                    {assignment.title}
+                  </h3>
+                  <p className={`text-sm mt-1 ${
+                    isPastDue && !assignment.allowLateSubmission
+                      ? 'text-red-700 dark:text-red-400'
+                      : isPastDue && assignment.allowLateSubmission
+                      ? 'text-yellow-700 dark:text-yellow-400'
+                      : 'text-blue-700 dark:text-blue-400'
+                  }`}>
+                    Due: {formatDate(assignment.dueDate)}
+                    {isPastDue && !assignment.allowLateSubmission && (
+                      <span className="font-medium ml-2">- Past Due (Submission Closed)</span>
+                    )}
+                    {isPastDue && assignment.allowLateSubmission && (
+                      <span className="font-medium ml-2">- Past Due (Late Submission Allowed)</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              {isPastDue && !assignment.allowLateSubmission && (
+                <ExclamationTriangleIcon className="w-6 h-6 text-red-600 dark:text-red-400" />
+              )}
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center">
             <ExclamationTriangleIcon className="w-5 h-5 mr-2" />
             {error}
+          </div>
+        )}
+
+        {isPastDue && !assignment?.allowLateSubmission && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-6">
+            <div className="flex items-center">
+              <ExclamationTriangleIcon className="w-5 h-5 mr-2 flex-shrink-0" />
+              <div>
+                <p className="font-medium">Submission Closed</p>
+                <p className="text-sm mt-1">
+                  This assignment's due date has passed and late submissions are not allowed. 
+                  Please contact your instructor if you need to submit late.
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -508,11 +580,12 @@ const AssignmentSubmit = () => {
               <h3 className="text-lg font-semibold text-gray-900">Written Response</h3>
             </div>
             <textarea 
-              className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
               rows={8} 
               value={text} 
               onChange={(e) => setText(e.target.value)} 
               placeholder="Write your solution, explanation, or any additional notes here..."
+              disabled={!canSubmit}
             />
             <div className="flex justify-between items-center mt-2">
               <span className="text-sm text-gray-500">{text.length} characters</span>
@@ -528,7 +601,7 @@ const AssignmentSubmit = () => {
               </div>
               <h3 className="text-lg font-semibold text-gray-900">Code Submission</h3>
             </div>
-            <div className="border border-gray-300 rounded-lg overflow-hidden">
+            <div className={`border border-gray-300 rounded-lg overflow-hidden ${!canSubmit ? 'opacity-50 pointer-events-none' : ''}`}>
               <CodeEditor value={code} onChange={setCode} />
             </div>
             <div className="flex justify-between items-center mt-2">
@@ -547,26 +620,29 @@ const AssignmentSubmit = () => {
             {/* Drag and Drop Area */}
             <div
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragActive 
+                !canSubmit
+                  ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
+                  : dragActive 
                   ? 'border-primary-400 bg-primary-50' 
                   : 'border-gray-300 hover:border-gray-400'
               }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
+              onDragEnter={canSubmit ? handleDrag : undefined}
+              onDragLeave={canSubmit ? handleDrag : undefined}
+              onDragOver={canSubmit ? handleDrag : undefined}
+              onDrop={canSubmit ? handleDrop : undefined}
             >
-              <CloudArrowUpIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-900 mb-2">
+              <CloudArrowUpIcon className={`w-12 h-12 mx-auto mb-4 ${!canSubmit ? 'text-gray-300' : 'text-gray-400'}`} />
+              <p className={`text-lg font-medium mb-2 ${!canSubmit ? 'text-gray-400' : 'text-gray-900'}`}>
                 Drop files here or click to browse
               </p>
-              <p className="text-gray-500 mb-4">
+              <p className={`mb-4 ${!canSubmit ? 'text-gray-400' : 'text-gray-500'}`}>
                 Support for images, documents, videos, and more
               </p>
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => canSubmit && fileInputRef.current?.click()}
                 className="btn-primary"
+                disabled={!canSubmit}
               >
                 Choose Files
               </button>
@@ -577,6 +653,7 @@ const AssignmentSubmit = () => {
                 onChange={handleFileInput}
                 className="hidden"
                 accept="image/*,video/*,application/pdf,.doc,.docx,.txt,.zip,.rar"
+                disabled={!canSubmit}
               />
             </div>
 
@@ -619,13 +696,18 @@ const AssignmentSubmit = () => {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !canSubmit}
               className="px-8 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
             >
               {loading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Submitting...
+                </>
+              ) : !canSubmit ? (
+                <>
+                  <ExclamationTriangleIcon className="w-4 h-4 mr-2" />
+                  Submission Closed
                 </>
               ) : (
                 <>
