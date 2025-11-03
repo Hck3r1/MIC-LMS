@@ -37,6 +37,13 @@ const EditCourse = () => {
   // Local editable modules builder (existing + new)
   const [modules, setModules] = useState([]);
 
+  // Thumbnail/Banner local state
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [bannerFile, setBannerFile] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+
   const API_URL = process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api';
   const authHeaders = useMemo(() => ({ Authorization: `Bearer ${localStorage.getItem('token') || ''}` }), []);
 
@@ -171,6 +178,41 @@ const EditCourse = () => {
     load();
   }, [courseModules, API_URL, authHeaders]);
 
+  const onMediaChange = (e, type) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      setError('Please select a valid image (JPEG, PNG, WebP).');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be less than 5MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      if (type === 'thumbnail') {
+        setThumbnailFile(file);
+        setThumbnailPreview(ev.target.result);
+      } else {
+        setBannerFile(file);
+        setBannerPreview(ev.target.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeMedia = (type) => {
+    if (type === 'thumbnail') {
+      setThumbnailFile(null);
+      setThumbnailPreview(null);
+    } else {
+      setBannerFile(null);
+      setBannerPreview(null);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -263,6 +305,31 @@ const EditCourse = () => {
               .filter(Boolean)
       });
       if (!result.success) throw new Error(result.error);
+
+      // Upload media if selected
+      if (thumbnailFile || bannerFile) {
+        setUploadingMedia(true);
+        try {
+          if (thumbnailFile) {
+            const fd = new FormData();
+            fd.append('thumbnail', thumbnailFile);
+            await axios.post(`${API_URL}/courses/${id}/thumbnail`, fd, {
+              headers: { ...authHeaders }
+            });
+          }
+          if (bannerFile) {
+            const fd = new FormData();
+            fd.append('banner', bannerFile);
+            await axios.post(`${API_URL}/courses/${id}/banner`, fd, {
+              headers: { ...authHeaders }
+            });
+          }
+        } catch (e) {
+          console.warn('Media upload failed:', e?.response?.data || e?.message);
+        } finally {
+          setUploadingMedia(false);
+        }
+      }
 
       // Create/update modules and assignments
       for (const m of modules) {
@@ -409,6 +476,68 @@ const EditCourse = () => {
                 <input type="number" name="duration" min="1" required className={inputClass} value={formData.duration} onChange={handleChange} placeholder="10" />
               </div>
             </div>
+          </div>
+
+          {/* Course Media */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Course Media</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Thumbnail */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Course Thumbnail</label>
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
+                  {thumbnailPreview || currentCourse?.thumbnail ? (
+                    <div className="relative">
+                      <img
+                        src={thumbnailPreview || currentCourse?.thumbnail}
+                        alt="Thumbnail preview"
+                        className="w-full h-40 object-cover rounded-lg"
+                      />
+                      {thumbnailPreview && (
+                        <button type="button" onClick={() => removeMedia('thumbnail')} className="absolute top-2 right-2 bg-red-500 text-white rounded-full px-2 py-1 text-xs">
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Upload a thumbnail image</p>
+                  )}
+                  <input type="file" accept="image/*" id="thumb-upload" className="hidden" onChange={(e) => onMediaChange(e, 'thumbnail')} />
+                  <label htmlFor="thumb-upload" className="mt-3 inline-block px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer">
+                    Choose File
+                  </label>
+                </div>
+              </div>
+              {/* Banner */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Course Banner</label>
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
+                  {bannerPreview || currentCourse?.banner ? (
+                    <div className="relative">
+                      <img
+                        src={bannerPreview || currentCourse?.banner}
+                        alt="Banner preview"
+                        className="w-full h-40 object-cover rounded-lg"
+                      />
+                      {bannerPreview && (
+                        <button type="button" onClick={() => removeMedia('banner')} className="absolute top-2 right-2 bg-red-500 text-white rounded-full px-2 py-1 text-xs">
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Upload a banner image</p>
+                  )}
+                  <input type="file" accept="image/*" id="banner-upload" className="hidden" onChange={(e) => onMediaChange(e, 'banner')} />
+                  <label htmlFor="banner-upload" className="mt-3 inline-block px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors cursor-pointer">
+                    Choose File
+                  </label>
+                </div>
+              </div>
+            </div>
+            {uploadingMedia && (
+              <div className="text-sm text-gray-500 dark:text-gray-400 mt-3">Uploading media...</div>
+            )}
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
