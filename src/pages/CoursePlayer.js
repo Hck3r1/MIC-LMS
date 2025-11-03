@@ -65,7 +65,7 @@ const ImageGallery = ({ files }) => {
   );
 };
 
-const Html5Video = ({ src }) => {
+const Html5Video = ({ src, onEnded }) => {
   const videoRef = useRef(null);
   const [speed, setSpeed] = useState(1);
   useEffect(() => {
@@ -73,7 +73,7 @@ const Html5Video = ({ src }) => {
   }, [speed]);
   return (
     <div>
-      <video ref={videoRef} controls className="w-full rounded-lg">
+      <video ref={videoRef} controls className="w-full rounded-lg" onEnded={onEnded}>
         <source src={src} />
         Your browser does not support the video tag.
       </video>
@@ -126,6 +126,35 @@ const CoursePlayer = () => {
     setTimeout(() => {
       setIsContentLoading(false);
     }, 300);
+  };
+
+  // Navigation helpers
+  const goPrevContent = () => {
+    const contents = activeModule?.content || [];
+    if (!contents.length) return;
+    if (activeContentIdx > 0) {
+      handleContentSwitch(activeContentIdx - 1);
+      return;
+    }
+    if (activeModuleIdx > 0) {
+      handleModuleSwitch(activeModuleIdx - 1);
+      const prevContents = modules?.[activeModuleIdx - 1]?.content || [];
+      const lastIdx = Math.max(0, prevContents.length - 1);
+      setTimeout(() => handleContentSwitch(lastIdx), 0);
+    }
+  };
+
+  const goNextContent = () => {
+    const contents = activeModule?.content || [];
+    if (!contents.length) return;
+    if (activeContentIdx < contents.length - 1) {
+      handleContentSwitch(activeContentIdx + 1);
+      return;
+    }
+    if (activeModuleIdx < (modules?.length || 0) - 1) {
+      handleModuleSwitch(activeModuleIdx + 1);
+      setTimeout(() => handleContentSwitch(0), 0);
+    }
   };
 
   useEffect(() => {
@@ -456,7 +485,7 @@ const CoursePlayer = () => {
                     <YouTubeEmbed url={activeContent.url} startSeconds={videoStart} />
                   </div>
                 ) : (
-                  <Html5Video src={activeContent.url} />
+                  <Html5Video src={activeContent.url} onEnded={goNextContent} />
                 )}
               </div>
             )}
@@ -471,6 +500,25 @@ const CoursePlayer = () => {
                 ? <ImageGallery files={activeContent.files} />
                 : <ImageGallery files={[{ url: activeContent.url, filename: activeContent.title || 'image', fileType: activeContent.fileType || '' }]} />
             )}
+          </div>
+
+          {/* Content navigation controls */}
+          <div className="flex items-center justify-between">
+            <button
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              onClick={goPrevContent}
+            >
+              Previous
+            </button>
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              {activeModule ? `Module ${activeModuleIdx + 1} • ${activeContentIdx + 1}/${activeModule?.content?.length || 0}` : ''}
+            </div>
+            <button
+              className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+              onClick={goNextContent}
+            >
+              Next
+            </button>
           </div>
           
           {/* Progress and Completion Section */}
@@ -731,6 +779,37 @@ const CoursePlayer = () => {
           )}
         </div>
         <div className="space-y-4">
+          {/* Contents first */}
+          <div className="card">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Contents</h4>
+            <ul className="space-y-2">
+              {(activeModule?.content || []).map((c, cIdx) => {
+                const contentId = c._id || c.title;
+                const metadata = videoMetadata[contentId];
+                const displayTitle = c.type === 'video' && isYouTubeUrl(c.url) && metadata?.title 
+                  ? metadata.title 
+                  : (c.title || c.name || c.type);
+                return (
+                  <li key={cIdx} className={`px-2 py-2 rounded text-sm cursor-pointer ${cIdx === activeContentIdx ? 'bg-primary-50 dark:bg-primary-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} ${isContentLoading && cIdx === activeContentIdx ? 'opacity-75' : ''}`} onClick={() => handleContentSwitch(cIdx)}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="uppercase text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">{c.type}</span>
+                        <span className="text-gray-800 dark:text-gray-200 text-sm leading-tight truncate">{displayTitle}</span>
+                      </div>
+                      {c.duration ? (
+                        <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">{Math.floor(c.duration / 60)}:{(c.duration % 60).toString().padStart(2, '0')}</span>
+                      ) : null}
+                    </div>
+                  </li>
+                );
+              })}
+              {(!activeModule?.content || activeModule.content.length === 0) && (
+                <li className="text-sm text-gray-600 dark:text-gray-400">No contents in this module.</li>
+              )}
+            </ul>
+          </div>
+
+          {/* Modules second */}
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Modules</h3>
             <div className="space-y-4">
