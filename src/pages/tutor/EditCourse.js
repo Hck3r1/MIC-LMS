@@ -98,6 +98,12 @@ const EditCourse = () => {
         title: m.title || '',
         description: m.description || '',
         order: m.order || (idx + 1),
+        // Keep a copy of original video URLs so we can detect newly added ones later
+        originalVideos: Array.isArray(m.content)
+          ? m.content
+              .filter(c => c?.type === 'video' && typeof c?.url === 'string')
+              .map(c => c.url)
+          : [],
         videos: Array.isArray(m.content)
           ? m.content
               .filter(c => c?.type === 'video' && typeof c?.url === 'string')
@@ -136,6 +142,7 @@ const EditCourse = () => {
                     ? data.data
                     : [];
               const simplified = list.map(a => ({
+                _id: a._id,
                 title: a.title || '',
                 description: a.description || '',
                 instructions: a.instructions || '',
@@ -257,9 +264,57 @@ const EditCourse = () => {
       });
       if (!result.success) throw new Error(result.error);
 
-      // For any modules without _id (new ones), create and attach content
+      // Create/update modules and assignments
       for (const m of modules) {
-        if (m._id) continue; // existing module - skip creation in this flow
+        // Existing module: update core fields
+        if (m._id) {
+          try {
+            await axios.put(`${API_URL}/modules/${m._id}`, {
+              title: m.title,
+              description: m.description,
+              order: m.order
+            }, { headers: authHeaders });
+          } catch (_) {}
+
+          // Add newly added video links (no removal here)
+          const originals = Array.isArray(m.originalVideos) ? m.originalVideos : [];
+          const currentUrls = (m.videos || []).map(u => (u || '').trim()).filter(Boolean);
+          const newUrls = currentUrls.filter(u => !originals.includes(u));
+          const removedUrls = originals.filter(u => !currentUrls.includes(u));
+          for (const url of newUrls) {
+            try {
+              await addModuleContent(m._id, { type: 'video', title: 'Video', url, videoType: 'youtube' });
+            } catch (_) {}
+          }
+          // Remove deleted video links
+          for (const url of removedUrls) {
+            try {
+              await axios.delete(`${API_URL}/modules/${m._id}/content`, { headers: authHeaders, data: { url } });
+            } catch (_) {}
+          }
+
+          // Update or create assignments
+          for (const a of (m.assignments || [])) {
+            const payload = {
+              title: a.title,
+              description: a.description,
+              instructions: a.instructions,
+              type: a.type,
+              dueDate: a.dueDate,
+              maxPoints: parseInt(a.maxPoints || 100)
+            };
+            try {
+              if (a._id) {
+                await axios.put(`${API_URL}/assignments/${a._id}`, payload, { headers: authHeaders });
+              } else {
+                await createAssignment({ moduleId: m._id, courseId: id, ...payload });
+              }
+            } catch (_) {}
+          }
+          continue;
+        }
+
+        // New module: create and attach content
         if (!m.title || !m.description) continue;
         const modRes = await createModule({ courseId: id, title: m.title, description: m.description, order: m.order });
         if (!modRes.success) continue;
