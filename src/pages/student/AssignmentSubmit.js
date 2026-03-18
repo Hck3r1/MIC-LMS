@@ -246,28 +246,6 @@ const AssignmentSubmit = () => {
     );
   }
 
-  // Show error state if no submission found but we expected one
-  if (!loadingSubmission && !existingSubmission && assignmentId) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center">
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <ExclamationTriangleIcon className="w-8 h-8 text-yellow-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No Submission Found</h2>
-            <p className="text-gray-600 mb-4">You haven't submitted this assignment yet.</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="btn-primary"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
 
   // Show existing submission if found
