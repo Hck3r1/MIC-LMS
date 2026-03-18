@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { ChatBubbleLeftRightIcon, PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
@@ -12,9 +12,11 @@ const MessagesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
-  const headers = { Authorization: `Bearer ${localStorage.getItem('token') || ''}` };
+  const headers = useMemo(
+    () => ({ Authorization: `Bearer ${localStorage.getItem('token') || ''}` }),
+    []
+  );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const load = async () => {
       try {
@@ -29,7 +31,7 @@ const MessagesPage = () => {
       }
     };
     load();
-  }, []);
+  }, [headers]);
 
   const formatTime = (dateString) => {
     const date = new Date(dateString);

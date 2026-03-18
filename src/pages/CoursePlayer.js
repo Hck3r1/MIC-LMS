@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCourses } from '../contexts/CourseContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -155,20 +155,25 @@ const CoursePlayer = () => {
     }
   };
 
+  const activeModule = useMemo(
+    () => (modules && modules[activeModuleIdx]) || null,
+    [modules, activeModuleIdx]
+  );
+  const activeContent = useMemo(
+    () =>
+      (Array.isArray(activeModule?.content) && activeModule.content[activeContentIdx]) ||
+      null,
+    [activeModule, activeContentIdx]
+  );
+
   useEffect(() => {
     if (!id) return;
     fetchCourse(id);
     fetchModules(id);
   }, [id, fetchCourse, fetchModules]);
 
-  // Fetch progress data
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!id || !user) return;
-    fetchProgress();
-  }, [id, user]);
-
-  const fetchProgress = async () => {
+  const fetchProgress = useCallback(async () => {
+    if (!id) return;
     try {
       const response = await axios.get(`${API_URL}/progress/course/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -184,7 +189,13 @@ const CoursePlayer = () => {
     } catch (error) {
       console.error('Error fetching progress:', error);
     }
-  };
+  }, [id]);
+
+  // Fetch progress data
+  useEffect(() => {
+    if (!id || !user) return;
+    fetchProgress();
+  }, [id, user, fetchProgress]);
 
   const markModuleComplete = async () => {
     if (!activeModule?._id || !id || isMarkingComplete) return;
@@ -255,7 +266,7 @@ const CoursePlayer = () => {
     }
   };
 
-  const trackContentView = async (contentId, timeSpent = 0) => {
+  const trackContentView = useCallback(async (contentId, timeSpent = 0) => {
     if (!activeModule?._id || !id || !contentId) return;
     
     try {
@@ -270,10 +281,10 @@ const CoursePlayer = () => {
     } catch (error) {
       console.error('Error tracking content view:', error);
     }
-  };
+  }, [activeModule?._id, id]);
 
   // Fetch submission data for assignments
-  const fetchSubmissionData = async () => {
+  const fetchSubmissionData = useCallback(async () => {
     if (!assignments || assignments.length === 0) return;
     
     try {
@@ -312,7 +323,7 @@ const CoursePlayer = () => {
     } catch (error) {
       console.error('Error fetching submission data:', error);
     }
-  };
+  }, [assignments]);
 
   // Check if all assignments for this module are completed
   const checkAssignmentsCompletion = () => {
@@ -361,37 +372,32 @@ const CoursePlayer = () => {
 
   const assignmentStatus = checkAssignmentsCompletion();
 
-  const activeModule = useMemo(() => (modules && modules[activeModuleIdx]) || null, [modules, activeModuleIdx]);
-  const activeContent = useMemo(() => (Array.isArray(activeModule?.content) && activeModule.content[activeContentIdx]) || null, [activeModule, activeContentIdx]);
-
   useEffect(() => {
     if (!activeModule?._id) return;
     fetchAssignments(activeModule._id);
   }, [activeModule?._id, fetchAssignments]);
 
   // Fetch submission data when assignments change
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (assignments && assignments.length > 0) {
       fetchSubmissionData();
     }
-  }, [assignments, id]);
+  }, [assignments, fetchSubmissionData]);
 
   // Track content viewing
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!activeContent?._id && !activeContent?.title) return;
     
     const contentId = activeContent._id || activeContent.title;
     trackContentView(contentId);
-  }, [activeContent]);
+  }, [activeContent, trackContentView]);
 
   useEffect(() => { setVideoStart(0); }, [activeContentIdx, activeModule?._id]);
 
   const isYouTubeUrl = (u) => /youtu(\.be|be\.com)\//i.test(u || '');
 
   // Fetch YouTube video metadata
-  const fetchYouTubeMetadata = async (url) => {
+  const fetchYouTubeMetadata = useCallback(async (url) => {
     if (!isYouTubeUrl(url)) return null;
     
     const videoId = (url.match(/[?&]v=([^&#]+)/) || url.match(/youtu\.be\/([^?&#]+)/))?.[1];
@@ -412,10 +418,9 @@ const CoursePlayer = () => {
       console.warn('Failed to fetch YouTube metadata:', error);
     }
     return null;
-  };
+  }, []);
 
   // Load video metadata for all video content
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const loadVideoMetadata = async () => {
       if (!activeModule?.content) return;
@@ -436,7 +441,7 @@ const CoursePlayer = () => {
     };
 
     loadVideoMetadata();
-  }, [activeModule]);
+  }, [activeModule, fetchYouTubeMetadata]);
 
   // Time tracking ping while viewing (reduced frequency and only when tab is visible/focused)
   useEffect(() => {
