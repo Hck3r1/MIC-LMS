@@ -7,8 +7,7 @@ import {
   PhotoIcon,
   DocumentIcon,
   XMarkIcon,
-  PlusIcon,
-  TrashIcon
+  PlusIcon
 } from '@heroicons/react/24/outline';
 
 const CreateCourse = () => {

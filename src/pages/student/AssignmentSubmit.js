@@ -11,8 +11,7 @@ import {
   PaperAirplaneIcon,
   ClockIcon,
   AcademicCapIcon,
-  EyeIcon,
-  StarIcon
+  EyeIcon
 } from '@heroicons/react/24/outline';
 
 const AssignmentSubmit = () => {

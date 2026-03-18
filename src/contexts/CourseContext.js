@@ -625,7 +625,6 @@ export const CourseProvider = ({ children }) => {
     fetchCourse,
     fetchInstructorCourses,
     fetchCourseEnrollments,
-    fetchInstructorCourses,
     createCourse,
     updateCourse,
     deleteCourse,
@@ -650,6 +649,7 @@ export const CourseProvider = ({ children }) => {
     ,getTutorActionItems
     ,getTutorProfile
     ,getAuthMe
+    ,getStudentOverview
   };
 
   return (

@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useCourses } from '../../contexts/CourseContext';
 import {
   BookOpenIcon,
   ClockIcon,
   StarIcon,
   PlayIcon,
-  ChartBarIcon,
-  CalendarIcon
+  ChartBarIcon
 } from '@heroicons/react/24/outline';
 
 const EnrolledCourses = ({ stats }) => {
   const { user } = useAuth();
-  const { fetchCourses } = useCourses();
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 

@@ -5,7 +5,6 @@ import axios from 'axios';
 import {
   UsersIcon,
   BookOpenIcon,
-  ChartBarIcon,
   ArrowTrendingUpIcon,
   ClockIcon,
   StarIcon
@@ -53,13 +52,6 @@ const AnalyticsOverview = () => {
     };
     load();
   }, [user?._id, getTutorOverview, getTutorRecentPerformance, getTutorTopCourses]);
-
-  const recentStats = [
-    { label: 'New Students This Month', value: 23, change: '+15%', positive: true },
-    { label: 'Course Completions', value: 45, change: '+8%', positive: true },
-    { label: 'Average Grade', value: '87%', change: '+3%', positive: true },
-    { label: 'Student Engagement', value: '92%', change: '-2%', positive: false }
-  ];
 
   const StatCard = ({ icon: Icon, title, value, subtitle, color = 'primary' }) => {
     const colorClasses = {

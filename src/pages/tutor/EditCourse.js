@@ -32,7 +32,7 @@ const EditCourse = () => {
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [fieldErrors, setFieldErrors] = useState([]);
+  const [fieldErrors] = useState([]);
 
   // Local editable modules builder (existing + new)
   const [modules, setModules] = useState([]);

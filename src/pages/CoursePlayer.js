@@ -103,8 +103,6 @@ const CoursePlayer = () => {
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
   const [submissionData, setSubmissionData] = useState({});
   const [isContentLoading, setIsContentLoading] = useState(false);
-  const trackRef = useRef(null);
-
   // Handle module switching with loading state
   const handleModuleSwitch = (moduleIdx) => {
     setIsContentLoading(true);
@@ -164,6 +162,7 @@ const CoursePlayer = () => {
   }, [id, fetchCourse, fetchModules]);
 
   // Fetch progress data
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!id || !user) return;
     fetchProgress();
@@ -371,6 +370,7 @@ const CoursePlayer = () => {
   }, [activeModule?._id, fetchAssignments]);
 
   // Fetch submission data when assignments change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (assignments && assignments.length > 0) {
       fetchSubmissionData();
@@ -378,6 +378,7 @@ const CoursePlayer = () => {
   }, [assignments, id]);
 
   // Track content viewing
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!activeContent?._id && !activeContent?.title) return;
     
@@ -414,6 +415,7 @@ const CoursePlayer = () => {
   };
 
   // Load video metadata for all video content
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const loadVideoMetadata = async () => {
       if (!activeModule?.content) return;

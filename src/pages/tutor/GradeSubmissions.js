@@ -9,7 +9,6 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onren
 const GradeSubmissions = ({ assignmentId: assignmentIdProp }) => {
   const params = useParams();
   const assignmentId = assignmentIdProp || params.assignmentId;
-  const submissionId = params.id;
   const { gradeSubmission } = useSubmissions();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,8 +35,10 @@ const GradeSubmissions = ({ assignmentId: assignmentIdProp }) => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [assignmentId]);
 
+  // eslint-disable-next-line no-unused-vars
   const onGrade = async (sid) => {
     const grade = parseFloat(prompt('Enter grade (0-100):') || '0');
     if (Number.isNaN(grade)) return;

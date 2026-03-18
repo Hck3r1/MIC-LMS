@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   CheckCircleIcon,
@@ -10,9 +10,6 @@ import {
 } from '@heroicons/react/24/outline';
 
 const RecentActivity = ({ activities = [] }) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
   const getActivityIcon = (type) => {
     switch (type) {
       case 'assignment_submitted':

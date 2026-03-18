@@ -20,15 +20,12 @@ const TutorDashboard = () => {
   const navigate = useNavigate();
   const { getTutorOverview, getTutorRecentPerformance, getTutorTopCourses, getTutorActionItems } = useCourses();
   const [overview, setOverview] = useState(null);
-  const [recent, setRecent] = useState(null);
-
   useEffect(() => {
     const load = async () => {
       if (!user?._id) return;
       const o = await getTutorOverview(user._id, '30d');
       if (o.success) setOverview(o.data);
-      const r = await getTutorRecentPerformance(user._id, '30d');
-      if (r.success) setRecent(r.data);
+      await getTutorRecentPerformance(user._id, '30d');
       // Optional: could fetch top courses and action items for auxiliary widgets
       // const top = await getTutorTopCourses(user._id, 3);
       // const action = await getTutorActionItems(user._id);

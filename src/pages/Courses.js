@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCourses } from '../contexts/CourseContext';
 import { useAuth } from '../contexts/AuthContext';
 import CourseCard from '../components/student/CourseCard';

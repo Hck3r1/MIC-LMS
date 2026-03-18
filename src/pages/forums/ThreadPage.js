@@ -77,6 +77,7 @@ const ThreadPage = () => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [threadId]);
 
   const onReply = async (e) => {

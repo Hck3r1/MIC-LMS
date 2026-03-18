@@ -62,6 +62,7 @@ const ForumPage = () => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, [courseId]);
 
   const onCreate = async (e) => {

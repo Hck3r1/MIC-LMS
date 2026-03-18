@@ -12,7 +12,6 @@ import {
   AcademicCapIcon,
   ChartBarIcon,
   BellIcon,
-  ChatBubbleLeftRightIcon,
   SunIcon,
   MoonIcon
 } from '@heroicons/react/24/outline';
@@ -22,7 +21,7 @@ const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { isAuthenticated, user, logout } = useAuth();
   const { unreadCount, listNotifications, markSeen, items } = useNotifications();
-  const { theme, toggleTheme, isDark } = useTheme();
+  const { toggleTheme, isDark } = useTheme();
   const notifItems = Array.isArray(items) ? items : [];
   const unread = typeof unreadCount === 'number' ? unreadCount : 0;
   const [openBell, setOpenBell] = useState(false);

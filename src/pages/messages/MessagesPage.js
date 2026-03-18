@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { ChatBubbleLeftRightIcon, UserCircleIcon, PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftRightIcon, PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api';
 
@@ -14,6 +14,7 @@ const MessagesPage = () => {
   const [searching, setSearching] = useState(false);
   const headers = { Authorization: `Bearer ${localStorage.getItem('token') || ''}` };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const load = async () => {
       try {

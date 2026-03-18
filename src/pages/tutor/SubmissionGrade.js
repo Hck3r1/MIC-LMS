@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useSubmissions } from '../../contexts/SubmissionsContext';
-import { ArrowLeftIcon, DocumentTextIcon, UserIcon, ClockIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, DocumentTextIcon, UserIcon } from '@heroicons/react/24/outline';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api';
 

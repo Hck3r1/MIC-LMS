@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCourses } from '../../contexts/CourseContext';
-import { useSubmissions } from '../../contexts/SubmissionsContext';
 import axios from 'axios';
 import { 
   BookOpenIcon, 
@@ -9,7 +8,6 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
-  ChartBarIcon,
   ArrowLeftIcon,
   ChevronDownIcon,
   ChevronUpIcon
@@ -19,8 +17,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onren
 
 const StudentProgress = () => {
   const navigate = useNavigate();
-  const { courses, fetchInstructorCourses, fetchCourseEnrollments } = useCourses();
-  const { fetchSubmissions } = useSubmissions();
+  const { courses } = useCourses();
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [students, setStudents] = useState([]);
   const [modules, setModules] = useState([]);

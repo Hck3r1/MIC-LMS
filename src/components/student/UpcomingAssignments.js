@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   CalendarIcon,
@@ -8,8 +8,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const UpcomingAssignments = ({ assignments = [] }) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [loading] = useState(false);
 
   const getDaysUntilDue = (dueDate) => {
     const now = new Date();

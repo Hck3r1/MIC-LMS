@@ -13,8 +13,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { setToken, authenticate, loadUser, isAuthenticated, user } = useAuth();
-  const { theme, isDark } = useTheme();
+  const { authenticate, loadUser, isAuthenticated, user } = useAuth();
+  useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const endpointLogin = useLoginEndpoint();
@@ -27,8 +27,6 @@ const Login = () => {
       navigate(target, { replace: true });
     }
   }, [isAuthenticated, user, navigate]);
-
-  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleChange = (e) => {
     setFormData({

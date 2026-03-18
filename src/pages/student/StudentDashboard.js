@@ -120,6 +120,7 @@ const StudentDashboard = () => {
       }
     };
     loadDashboardData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchCourses, getAuthMe, getStudentOverview]);
 
   const fetchStudentProgress = async () => {

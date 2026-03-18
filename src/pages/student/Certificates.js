@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useCourses } from '../../contexts/CourseContext';
 import {
   TrophyIcon,
-  ArrowDownTrayIcon,
   CalendarIcon,
   AcademicCapIcon,
   CheckCircleIcon,
@@ -11,8 +8,6 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Certificates = () => {
-  const { user } = useAuth();
-  const { getAuthMe } = useCourses();
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(null);
@@ -70,40 +65,6 @@ const Certificates = () => {
     } catch (error) {
       console.error('Certificate request error:', error);
       alert('Failed to request certificate. Please try again.');
-    } finally {
-      setDownloading(null);
-    }
-  };
-
-  const handleDownloadCertificate = async (courseId, courseTitle) => {
-    try {
-      setDownloading(courseId);
-      
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api'}/certificates/${courseId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `certificate-${courseTitle.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      } else {
-        const errorData = await response.json();
-        alert(`Error generating certificate: ${errorData.message || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Certificate download error:', error);
-      alert('Failed to download certificate. Please try again.');
     } finally {
       setDownloading(null);
     }

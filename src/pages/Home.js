@@ -14,7 +14,7 @@ import {
 
 const Home = () => {
   const { isAuthenticated, user } = useAuth();
-  const { theme, isDark } = useTheme();
+  useTheme();
 
   const features = [
     {

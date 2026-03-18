@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
 import { EnvelopeIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import MICLogo from '../../components/layout/MICLogo';
 
@@ -9,8 +8,6 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
-
   const API_URL = process.env.REACT_APP_API_URL || 'https://lms-backend-u90k.onrender.com/api';
 
   const handleSubmit = async (e) => {
