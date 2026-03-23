@@ -53,7 +53,12 @@ const AssignmentSubmit = () => {
         
         if (assignmentRes.ok) {
           const assignmentData = await assignmentRes.json();
-          setAssignment(assignmentData.data);
+          const assignmentPayload =
+            assignmentData?.data?.assignment ||
+            assignmentData?.data ||
+            assignmentData?.assignment ||
+            null;
+          setAssignment(assignmentPayload);
         }
         
         // Fetch student's submissions for this assignment
@@ -274,6 +279,29 @@ const AssignmentSubmit = () => {
                 <span>Max Points: {assignment?.maxPoints || existingSubmission.assignmentId?.maxPoints || existingSubmission.maxPoints}</span>
                 <span>Due: {assignment?.dueDate ? formatDate(assignment.dueDate) : existingSubmission.assignmentId?.dueDate ? formatDate(existingSubmission.assignmentId.dueDate) : 'No due date'}</span>
               </div>
+            </div>
+          )}
+
+          {/* Assignment Description and Instructions */}
+          {(assignment?.description || assignment?.instructions || existingSubmission.assignmentId?.description || existingSubmission.assignmentId?.instructions) && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Assignment Details</h3>
+              {(assignment?.description || existingSubmission.assignmentId?.description) && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Description</h4>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                    {assignment?.description || existingSubmission.assignmentId?.description}
+                  </p>
+                </div>
+              )}
+              {(assignment?.instructions || existingSubmission.assignmentId?.instructions) && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Instructions</h4>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                    {assignment?.instructions || existingSubmission.assignmentId?.instructions}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -524,6 +552,25 @@ const AssignmentSubmit = () => {
                 <ExclamationTriangleIcon className="w-6 h-6 text-red-600 dark:text-red-400" />
               )}
             </div>
+          </div>
+        )}
+
+        {/* Assignment Description and Instructions */}
+        {(assignment?.description || assignment?.instructions) && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Assignment Details</h2>
+            {assignment?.description && (
+              <div className="mb-4">
+                <h3 className="text-sm font-medium text-gray-900 mb-2">Description</h3>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{assignment.description}</p>
+              </div>
+            )}
+            {assignment?.instructions && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-2">Instructions</h3>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{assignment.instructions}</p>
+              </div>
+            )}
           </div>
         )}
 
