@@ -15,6 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 const AssignmentSubmit = () => {
+  const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB per file
   const { id: assignmentId } = useParams();
   const navigate = useNavigate();
   const { submitAssignment } = useSubmissions();
@@ -186,15 +187,36 @@ const AssignmentSubmit = () => {
     e.stopPropagation();
     setDragActive(false);
     
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFiles(prev => [...prev, ...Array.from(e.dataTransfer.files)]);
+    const droppedFiles = Array.from(e.dataTransfer.files || []);
+    if (!droppedFiles.length) return;
+
+    const validFiles = droppedFiles.filter(file => file.size <= MAX_FILE_SIZE_BYTES);
+    const oversizedFiles = droppedFiles.filter(file => file.size > MAX_FILE_SIZE_BYTES);
+
+    if (validFiles.length > 0) {
+      setFiles(prev => [...prev, ...validFiles]);
+    }
+    if (oversizedFiles.length > 0) {
+      setError(`Some files were not added because they exceed 10MB: ${oversizedFiles.map(f => f.name).join(', ')}`);
     }
   };
 
   const handleFileInput = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setFiles(prev => [...prev, ...Array.from(e.target.files)]);
+    const selectedFiles = Array.from(e.target.files || []);
+    if (!selectedFiles.length) return;
+
+    const validFiles = selectedFiles.filter(file => file.size <= MAX_FILE_SIZE_BYTES);
+    const oversizedFiles = selectedFiles.filter(file => file.size > MAX_FILE_SIZE_BYTES);
+
+    if (validFiles.length > 0) {
+      setFiles(prev => [...prev, ...validFiles]);
     }
+    if (oversizedFiles.length > 0) {
+      setError(`Some files were not added because they exceed 10MB: ${oversizedFiles.map(f => f.name).join(', ')}`);
+    }
+
+    // allow selecting the same file again after removal
+    e.target.value = '';
   };
 
   const removeFile = (index) => {
@@ -660,7 +682,7 @@ const AssignmentSubmit = () => {
                 Drop files here or click to browse
               </p>
               <p className={`mb-4 ${!canSubmit ? 'text-gray-400' : 'text-gray-500'}`}>
-                Support for images, documents, videos, and more
+                Any file type is allowed (max 10MB per file)
               </p>
               <button
                 type="button"
@@ -676,7 +698,6 @@ const AssignmentSubmit = () => {
                 multiple
                 onChange={handleFileInput}
                 className="hidden"
-                accept="image/*,video/*,application/pdf,.doc,.docx,.txt,.zip,.rar"
                 disabled={!canSubmit}
               />
             </div>

@@ -251,14 +251,23 @@ const SubmissionGrade = () => {
                             <p className="text-xs text-gray-600">{file.fileSize} bytes</p>
                           </div>
                         </div>
-                        <a
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-                        >
-                          View File
-                        </a>
+                        <div className="flex items-center gap-3">
+                          <a
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                          >
+                            View
+                          </a>
+                          <a
+                            href={file.url}
+                            download={file.originalName}
+                            className="text-gray-700 hover:text-gray-900 text-sm font-medium"
+                          >
+                            Download
+                          </a>
+                        </div>
                       </div>
                     ))}
                   </div>
