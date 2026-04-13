@@ -19,6 +19,7 @@ const CourseCard = ({ course, enrollment, onEnroll, onUnenroll }) => {
       'web-development': 'bg-blue-100 text-blue-800',
       'ui-ux': 'bg-purple-100 text-purple-800',
       'data-science': 'bg-green-100 text-green-800',
+      'networking': 'bg-indigo-100 text-indigo-800',
       'video-editing': 'bg-red-100 text-red-800',
       'graphics-design': 'bg-yellow-100 text-yellow-800'
     };
@@ -30,6 +31,7 @@ const CourseCard = ({ course, enrollment, onEnroll, onUnenroll }) => {
       'web-development': 'Web Development',
       'ui-ux': 'UI/UX Design',
       'data-science': 'Data Science',
+      'networking': 'Networking',
       'video-editing': 'Video Editing',
       'graphics-design': 'Graphics Design'
     };

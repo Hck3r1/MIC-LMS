@@ -11,9 +11,40 @@ import {
 } from '@heroicons/react/24/outline';
 
 const CreateCourse = () => {
+  const getFileTypeLabel = (fileName = '') => {
+    const ext = String(fileName).toLowerCase().split('.').pop();
+    const labels = {
+      pdf: 'PDF',
+      csv: 'CSV',
+      zip: 'ZIP',
+      rar: 'RAR',
+      xls: 'Excel',
+      xlsx: 'Excel',
+      doc: 'Word',
+      docx: 'Word',
+      ppt: 'PowerPoint',
+      pptx: 'PowerPoint',
+      txt: 'Text',
+      json: 'JSON',
+      xml: 'XML',
+      html: 'HTML',
+      htm: 'HTML',
+      css: 'CSS',
+      js: 'JavaScript',
+      ts: 'TypeScript',
+      png: 'Image',
+      jpg: 'Image',
+      jpeg: 'Image',
+      gif: 'Image',
+      mp4: 'Video',
+      mp3: 'Audio'
+    };
+    return labels[ext] || 'File';
+  };
+
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { createCourse, uploadThumbnail, uploadBanner, createModule, addModuleContent, createAssignment } = useCourses();
+  const { createCourse, uploadThumbnail, uploadBanner, createModule, addModuleContent, uploadModuleFiles, createAssignment } = useCourses();
 
   const [formData, setFormData] = useState({
     title: '',
@@ -103,6 +134,7 @@ const CreateCourse = () => {
     { value: 'web-development', label: 'Web Development' },
     { value: 'ui-ux', label: 'UI/UX Design' },
     { value: 'data-science', label: 'Data Science' },
+    { value: 'networking', label: 'Networking' },
     { value: 'video-editing', label: 'Video Editing' },
     { value: 'graphics-design', label: 'Graphics Design' }
   ];
@@ -231,6 +263,10 @@ const CreateCourse = () => {
             url,
             videoType: 'youtube'
           });
+        }
+        // Upload module resource files (any type)
+        if (m.resourceFiles && m.resourceFiles.length > 0) {
+          await uploadModuleFiles(moduleId, m.resourceFiles);
         }
         // Create assignments for module
         for (const a of (m.assignments || [])) {
@@ -546,6 +582,41 @@ const CreateCourse = () => {
                         </div>
                       ))}
                     </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100">Module Resource Files</h4>
+                    </div>
+                    <input
+                      type="file"
+                      multiple
+                      className={inputClass}
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        setModules(prev => prev.map((mod, mIdx) => (
+                          mIdx === idx ? { ...mod, resourceFiles: files } : mod
+                        )));
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Any file type is allowed (max 10MB per file).</p>
+                    {Array.isArray(m.resourceFiles) && m.resourceFiles.length > 0 && (
+                      <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          {m.resourceFiles.length} file{m.resourceFiles.length !== 1 ? 's' : ''} selected
+                        </p>
+                        <div className="space-y-1 max-h-28 overflow-y-auto">
+                          {m.resourceFiles.map((file, fileIndex) => (
+                            <div key={`${file.name}-${fileIndex}`} className="text-xs text-gray-600 dark:text-gray-400 truncate flex items-center gap-2">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 font-medium">
+                                {getFileTypeLabel(file.name)}
+                              </span>
+                              <span className="truncate">{file.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-6">

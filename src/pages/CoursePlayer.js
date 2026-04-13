@@ -92,6 +92,26 @@ const Html5Video = ({ src, onEnded }) => {
 };
 
 const CoursePlayer = () => {
+  const getFileTypeLabel = (value = '') => {
+    const normalized = String(value).toLowerCase();
+    if (normalized.includes('.pdf') || normalized.includes('pdf')) return 'PDF';
+    if (normalized.includes('.csv') || normalized.includes('csv')) return 'CSV';
+    if (normalized.includes('.zip') || normalized.includes('zip')) return 'ZIP';
+    if (normalized.includes('.rar') || normalized.includes('rar')) return 'RAR';
+    if (normalized.includes('.xls') || normalized.includes('.xlsx')) return 'Excel';
+    if (normalized.includes('.doc') || normalized.includes('.docx')) return 'Word';
+    if (normalized.includes('.ppt') || normalized.includes('.pptx')) return 'PowerPoint';
+    if (normalized.includes('.txt') || normalized.includes('text')) return 'Text';
+    if (normalized.includes('.json')) return 'JSON';
+    if (normalized.includes('.xml')) return 'XML';
+    if (normalized.includes('.html') || normalized.includes('.htm')) return 'HTML';
+    if (normalized.includes('.css')) return 'CSS';
+    if (normalized.includes('.js')) return 'JavaScript';
+    if (normalized.includes('.mp4') || normalized.includes('video')) return 'Video';
+    if (normalized.includes('.png') || normalized.includes('.jpg') || normalized.includes('.jpeg') || normalized.includes('.gif') || normalized.includes('image')) return 'Image';
+    return 'File';
+  };
+
   const { id } = useParams();
   const { user } = useAuth();
   const { currentCourse, modules, assignments, fetchCourse, fetchModules, fetchAssignments } = useCourses();
@@ -507,6 +527,38 @@ const CoursePlayer = () => {
                 ? <ImageGallery files={activeContent.files} />
                 : <ImageGallery files={[{ url: activeContent.url, filename: activeContent.title || 'image', fileType: activeContent.fileType || '' }]} />
             )}
+            {!isContentLoading && activeContent?.type === 'link' && (
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {activeContent.title || 'Resource file'}
+                  </h3>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-700">
+                    {getFileTypeLabel(activeContent.fileType || activeContent.url || activeContent.title)}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Open or download this file resource.
+                </p>
+                <div className="flex items-center gap-3">
+                  <a
+                    href={activeContent.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+                  >
+                    View File
+                  </a>
+                  <a
+                    href={activeContent.url}
+                    download={activeContent.title || 'resource'}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Download
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Content navigation controls */}
@@ -800,7 +852,9 @@ const CoursePlayer = () => {
                   <li key={cIdx} className={`px-2 py-2 rounded text-sm cursor-pointer ${cIdx === activeContentIdx ? 'bg-primary-50 dark:bg-primary-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700'} ${isContentLoading && cIdx === activeContentIdx ? 'opacity-75' : ''}`} onClick={() => handleContentSwitch(cIdx)}>
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="uppercase text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">{c.type}</span>
+                        <span className="uppercase text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+                          {c.type === 'link' ? 'file' : c.type}
+                        </span>
                         <span className="text-gray-800 dark:text-gray-200 text-sm leading-tight truncate">{displayTitle}</span>
                       </div>
                       {c.duration ? (
@@ -888,7 +942,9 @@ const CoursePlayer = () => {
                               {isContentLoading && cIdx === activeContentIdx && (
                                 <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-600 mr-1"></div>
                               )}
-                              <span className="uppercase text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">{c.type}</span>
+                              <span className="uppercase text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+                                {c.type === 'link' ? 'file' : c.type}
+                              </span>
                               {c.type === 'video' && c.duration > 0 && (
                                 <span className="text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
                                   {Math.floor(c.duration / 60)}:{(c.duration % 60).toString().padStart(2, '0')}

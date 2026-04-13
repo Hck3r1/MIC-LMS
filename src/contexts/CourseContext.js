@@ -369,6 +369,26 @@ export const CourseProvider = ({ children }) => {
     }
   }, []);
 
+  // Upload files to a module (any file types)
+  const uploadModuleFiles = useCallback(async (moduleId, files) => {
+    try {
+      const formData = new FormData();
+      (files || []).forEach((file) => formData.append('content', file));
+
+      const response = await axios.post(`${API_URL}/modules/${moduleId}/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          ...getAuthHeaders()
+        }
+      });
+
+      return { success: true, data: response.data?.data };
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Failed to upload module files';
+      return { success: false, error: errorMessage };
+    }
+  }, []);
+
   // Create assignment
   const createAssignment = useCallback(async (assignmentData) => {
     try {
@@ -634,6 +654,7 @@ export const CourseProvider = ({ children }) => {
     uploadBanner,
     createModule,
     addModuleContent,
+    uploadModuleFiles,
     createAssignment,
     updateAssignment,
     deleteAssignment,
