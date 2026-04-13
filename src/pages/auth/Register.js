@@ -180,6 +180,7 @@ const Register = () => {
                     <option value="web-development">Web Development</option>
                     <option value="ui-ux">UI/UX Design</option>
                     <option value="data-science">Data Science</option>
+                    <option value="networking">Networking</option>
                     <option value="video-editing">Video Editing</option>
                     <option value="graphics-design">Graphics Design</option>
                   </select>
