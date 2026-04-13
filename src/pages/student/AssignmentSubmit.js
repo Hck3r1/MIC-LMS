@@ -242,6 +242,10 @@ const AssignmentSubmit = () => {
     return '📎';
   };
 
+  const getResourceDisplayName = (resource, index) => {
+    return resource?.description || resource?.originalName || resource?.filename || `Resource ${index + 1}`;
+  };
+
   const getGradeColor = (grade, maxPoints) => {
     if (grade === null || grade === undefined) return 'text-gray-500';
     const percentage = (grade / maxPoints) * 100;
@@ -324,6 +328,30 @@ const AssignmentSubmit = () => {
                   </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Assignment Resources */}
+          {Array.isArray(assignment?.attachments) && assignment.attachments.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Assignment Resources</h3>
+              <div className="space-y-2">
+                {assignment.attachments.map((resource, index) => (
+                  <div key={`view-resource-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center min-w-0">
+                      <span className="text-2xl mr-3">{getFileIcon({ type: resource.fileType || '' })}</span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{getResourceDisplayName(resource, index)}</p>
+                        <p className="text-xs text-gray-500">{resource.fileSize ? formatFileSize(resource.fileSize) : 'Unknown size'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 ml-4">
+                      <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 text-sm font-medium">View</a>
+                      <a href={resource.url} download={getResourceDisplayName(resource, index)} className="text-gray-700 hover:text-gray-900 text-sm font-medium">Download</a>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -593,6 +621,30 @@ const AssignmentSubmit = () => {
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{assignment.instructions}</p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Assignment Resources */}
+        {Array.isArray(assignment?.attachments) && assignment.attachments.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Assignment Resources</h2>
+            <div className="space-y-2">
+              {assignment.attachments.map((resource, index) => (
+                <div key={`submit-resource-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center min-w-0">
+                    <span className="text-2xl mr-3">{getFileIcon({ type: resource.fileType || '' })}</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{getResourceDisplayName(resource, index)}</p>
+                      <p className="text-xs text-gray-500">{resource.fileSize ? formatFileSize(resource.fileSize) : 'Unknown size'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 ml-4">
+                    <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 text-sm font-medium">View</a>
+                    <a href={resource.url} download={getResourceDisplayName(resource, index)} className="text-gray-700 hover:text-gray-900 text-sm font-medium">Download</a>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

@@ -12,6 +12,7 @@ const AssignmentsManage = () => {
   const [form, setForm] = useState({ moduleId: '', title: '', description: '', instructions: '', type: 'file_upload', dueDate: '', maxPoints: 100 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [uploadingAssignmentId, setUploadingAssignmentId] = useState(null);
 
   useEffect(() => {
     if (!courseId) return;
@@ -84,6 +85,31 @@ const AssignmentsManage = () => {
       setError(err.response?.data?.message || 'Failed to publish assignment');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const uploadAssignmentResources = async (assignment, files) => {
+    const selectedFiles = Array.from(files || []);
+    if (!selectedFiles.length) return;
+
+    try {
+      setUploadingAssignmentId(assignment._id);
+      setError('');
+      const formData = new FormData();
+      selectedFiles.forEach((file) => formData.append('files', file));
+
+      await axios.post(`${API_URL}/assignments/${assignment._id}/upload`, formData, {
+        headers: {
+          ...headers,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      await fetchAssignments(assignment.moduleId);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to upload assignment resources');
+    } finally {
+      setUploadingAssignmentId(null);
     }
   };
 
@@ -170,34 +196,78 @@ const AssignmentsManage = () => {
           {form.moduleId && (
             <div className="divide-y divide-gray-100">
               {(assignments || []).map((a) => (
-                <div key={a._id} className="py-3 flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <div className="text-gray-900 font-medium">{a.title}</div>
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        a.isPublished 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {a.isPublished ? 'Published' : 'Draft'}
-                      </span>
+                <div key={a._id} className="py-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <div className="text-gray-900 font-medium">{a.title}</div>
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          a.isPublished 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {a.isPublished ? 'Published' : 'Draft'}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600">Due: {a.dueDate ? new Date(a.dueDate).toLocaleString() : '—'}</div>
+                      <div className="text-sm text-gray-500">Type: {a.type.replace('_', ' ')} • Points: {a.maxPoints}</div>
+                      {Array.isArray(a.attachments) && a.attachments.length > 0 && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {a.attachments.length} resource file{a.attachments.length !== 1 ? 's' : ''} attached
+                        </div>
+                      )}
                     </div>
-                    <div className="text-sm text-gray-600">Due: {a.dueDate ? new Date(a.dueDate).toLocaleString() : '—'}</div>
-                    <div className="text-sm text-gray-500">Type: {a.type.replace('_', ' ')} • Points: {a.maxPoints}</div>
+                    <div className="flex items-center gap-2">
+                      {!a.isPublished && (
+                        <button 
+                          type="button" 
+                          className="btn-primary text-sm" 
+                          onClick={() => onPublish(a)}
+                          disabled={loading}
+                        >
+                          Publish
+                        </button>
+                      )}
+                      <button type="button" className="btn-outline" onClick={() => onEdit(a)}>Edit</button>
+                      <button type="button" className="btn-danger" onClick={() => onDelete(a)}>Delete</button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {!a.isPublished && (
-                      <button 
-                        type="button" 
-                        className="btn-primary text-sm" 
-                        onClick={() => onPublish(a)}
-                        disabled={loading}
-                      >
-                        Publish
-                      </button>
+
+                  <div className="mt-3 border border-gray-200 rounded-lg p-3 bg-gray-50">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Assignment Resource Files (for students to download)
+                    </label>
+                    <input
+                      type="file"
+                      multiple
+                      className="input-field"
+                      onChange={(e) => {
+                        uploadAssignmentResources(a, e.target.files);
+                        e.target.value = '';
+                      }}
+                      disabled={uploadingAssignmentId === a._id}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Any file type allowed (max 10MB per file).
+                    </p>
+                    {uploadingAssignmentId === a._id && (
+                      <p className="text-xs text-primary-600 mt-1">Uploading files...</p>
                     )}
-                    <button type="button" className="btn-outline" onClick={() => onEdit(a)}>Edit</button>
-                    <button type="button" className="btn-danger" onClick={() => onDelete(a)}>Delete</button>
+                    {Array.isArray(a.attachments) && a.attachments.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {a.attachments.map((file, idx) => (
+                          <a
+                            key={`${a._id}-attachment-${idx}`}
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block text-xs text-primary-600 hover:text-primary-700 truncate"
+                          >
+                            {file.description || file.filename || `Resource ${idx + 1}`}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
