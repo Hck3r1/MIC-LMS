@@ -16,6 +16,11 @@ const GradeSubmissions = ({ assignmentId: assignmentIdProp }) => {
   const [search, setSearch] = useState('');
   const [moduleId, setModuleId] = useState('');
   const [selectedAssignmentId, setSelectedAssignmentId] = useState(assignmentId || '');
+  const [appliedFilters, setAppliedFilters] = useState({
+    search: '',
+    moduleId: '',
+    assignmentId: assignmentId || ''
+  });
   const [modules, setModules] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [pagination, setPagination] = useState({
@@ -32,13 +37,13 @@ const GradeSubmissions = ({ assignmentId: assignmentIdProp }) => {
     setLoading(true);
     setError('');
     try {
-      const effectiveAssignmentId = assignmentId || selectedAssignmentId;
+      const effectiveAssignmentId = assignmentId || appliedFilters.assignmentId;
       const paramsObj = {
         page,
         limit: pagination.limit
       };
-      if (search.trim()) paramsObj.search = search.trim();
-      if (moduleId) paramsObj.moduleId = moduleId;
+      if (appliedFilters.search.trim()) paramsObj.search = appliedFilters.search.trim();
+      if (appliedFilters.moduleId) paramsObj.moduleId = appliedFilters.moduleId;
       if (effectiveAssignmentId) paramsObj.assignmentId = effectiveAssignmentId;
 
       const res = await axios.get(`${API_URL}/submissions/tutor`, { headers, params: paramsObj });
@@ -59,7 +64,7 @@ const GradeSubmissions = ({ assignmentId: assignmentIdProp }) => {
     } finally {
       setLoading(false);
     }
-  }, [assignmentId, headers, moduleId, pagination.limit, search, selectedAssignmentId]);
+  }, [appliedFilters.assignmentId, appliedFilters.moduleId, appliedFilters.search, assignmentId, headers, pagination.limit]);
 
   useEffect(() => {
     load(1);
@@ -75,13 +80,54 @@ const GradeSubmissions = ({ assignmentId: assignmentIdProp }) => {
 
   useEffect(() => {
     // If assignment is route-bound, keep it fixed.
-    if (assignmentId) setSelectedAssignmentId(assignmentId);
+    if (assignmentId) {
+      setSelectedAssignmentId(assignmentId);
+      setAppliedFilters((prev) => ({ ...prev, assignmentId }));
+    }
   }, [assignmentId]);
 
   const handleModuleChange = (e) => {
     setModuleId(e.target.value);
     setSelectedAssignmentId('');
   };
+
+  const applyFilters = () => {
+    setAppliedFilters({
+      search,
+      moduleId,
+      assignmentId: assignmentId || selectedAssignmentId
+    });
+  };
+
+  const clearFilters = () => {
+    if (assignmentId) return;
+    setSearch('');
+    setModuleId('');
+    setSelectedAssignmentId('');
+    setAppliedFilters({
+      search: '',
+      moduleId: '',
+      assignmentId: ''
+    });
+  };
+
+  const pageStudentStats = useMemo(() => {
+    const stats = new Map();
+    items.forEach((submission) => {
+      const studentKey = submission?.studentId?._id || submission?.studentId?.id;
+      if (!studentKey) return;
+      if (!stats.has(studentKey)) {
+        stats.set(studentKey, {
+          submissionCount: 0,
+          assignmentIds: new Set()
+        });
+      }
+      const entry = stats.get(studentKey);
+      entry.submissionCount += 1;
+      if (submission?.assignmentId?._id) entry.assignmentIds.add(submission.assignmentId._id);
+    });
+    return stats;
+  }, [items]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -164,30 +210,45 @@ const GradeSubmissions = ({ assignmentId: assignmentIdProp }) => {
           </div>
 
           {!assignmentId && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-              <input
-                type="text"
-                className="input-field"
-                placeholder="Search student name or email"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <select className="input-field" value={moduleId} onChange={handleModuleChange}>
-                <option value="">All modules</option>
-                {modules.map((module) => (
-                  <option key={module._id} value={module._id}>{module.title}</option>
-                ))}
-              </select>
-              <select
-                className="input-field"
-                value={selectedAssignmentId}
-                onChange={(e) => setSelectedAssignmentId(e.target.value)}
-              >
-                <option value="">All assignments</option>
-                {assignments.map((assignment) => (
-                  <option key={assignment._id} value={assignment._id}>{assignment.title}</option>
-                ))}
-              </select>
+            <div className="mb-6 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Student Search</label>
+                  <input
+                    type="text"
+                    className="input-field"
+                    placeholder="Name or email"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Module</label>
+                  <select className="input-field" value={moduleId} onChange={handleModuleChange}>
+                    <option value="">All modules</option>
+                    {modules.map((module) => (
+                      <option key={module._id} value={module._id}>{module.title}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Assignment</label>
+                  <select
+                    className="input-field"
+                    value={selectedAssignmentId}
+                    onChange={(e) => setSelectedAssignmentId(e.target.value)}
+                  >
+                    <option value="">All assignments</option>
+                    {assignments.map((assignment) => (
+                      <option key={assignment._id} value={assignment._id}>{assignment.title}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-end gap-2">
+                <button type="button" className="btn-outline" onClick={clearFilters}>Clear</button>
+                <button type="button" className="btn-primary" onClick={applyFilters}>Apply Filters</button>
+              </div>
             </div>
           )}
 
@@ -220,6 +281,24 @@ const GradeSubmissions = ({ assignmentId: assignmentIdProp }) => {
                           {submission.studentId?.firstName} {submission.studentId?.lastName}
                         </p>
                         <p className="text-xs text-gray-600">{submission.courseId?.title}</p>
+                        {(() => {
+                          const studentKey = submission?.studentId?._id || submission?.studentId?.id;
+                          const pageStats = studentKey ? pageStudentStats.get(studentKey) : null;
+                          const backendCompleted = submission?.studentProgress?.assignmentsCompleted;
+                          const backendTotalSubmissions = submission?.studentProgress?.totalSubmissions;
+                          const completedAssignments = Number.isInteger(backendCompleted)
+                            ? backendCompleted
+                            : (pageStats ? pageStats.assignmentIds.size : 0);
+                          const totalSubmissions = Number.isInteger(backendTotalSubmissions)
+                            ? backendTotalSubmissions
+                            : (pageStats ? pageStats.submissionCount : 0);
+                          return (
+                            <div className="mt-1 flex items-center gap-3 text-xs">
+                              <span className="text-primary-700">Assignments done: {completedAssignments}</span>
+                              <span className="text-gray-500">Total submissions: {totalSubmissions}</span>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                     
