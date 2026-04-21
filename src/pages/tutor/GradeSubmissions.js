@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useSubmissions } from '../../contexts/SubmissionsContext';
 import { useParams, Link } from 'react-router-dom';
@@ -13,37 +13,74 @@ const GradeSubmissions = ({ assignmentId: assignmentIdProp }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [moduleId, setModuleId] = useState('');
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState(assignmentId || '');
+  const [modules, setModules] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrev: false
+  });
   const headers = useMemo(() => ({ Authorization: `Bearer ${localStorage.getItem('token') || ''}` }), []);
 
-  const load = async () => {
+  const load = useCallback(async (page = 1) => {
     setLoading(true);
     setError('');
     try {
-      if (assignmentId) {
-        // Load submissions for specific assignment
-        const res = await axios.get(`${API_URL}/submissions/assignment/${assignmentId}`, { headers });
-        setItems(res.data?.data?.submissions || []);
-      } else {
-        // Load all recent submissions for tutor
-        const res = await axios.get(`${API_URL}/submissions/recent?limit=50`, { headers });
-        setItems(res.data?.data?.submissions || []);
-      }
+      const effectiveAssignmentId = assignmentId || selectedAssignmentId;
+      const paramsObj = {
+        page,
+        limit: pagination.limit
+      };
+      if (search.trim()) paramsObj.search = search.trim();
+      if (moduleId) paramsObj.moduleId = moduleId;
+      if (effectiveAssignmentId) paramsObj.assignmentId = effectiveAssignmentId;
+
+      const res = await axios.get(`${API_URL}/submissions/tutor`, { headers, params: paramsObj });
+      const data = res.data?.data || {};
+      setItems(data.submissions || []);
+      setPagination(data.pagination || {
+        page,
+        limit: pagination.limit,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrev: false
+      });
+      setModules(data.filterOptions?.modules || []);
+      setAssignments(data.filterOptions?.assignments || []);
     } catch (e) {
       setError(e.response?.data?.message || 'Failed to load submissions');
     } finally {
       setLoading(false);
     }
-  };
+  }, [assignmentId, headers, moduleId, pagination.limit, search, selectedAssignmentId]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { load(); }, [assignmentId]);
+  useEffect(() => {
+    load(1);
+  }, [load]);
 
   // eslint-disable-next-line no-unused-vars
   const onGrade = async (sid) => {
     const grade = parseFloat(prompt('Enter grade (0-100):') || '0');
     if (Number.isNaN(grade)) return;
     await gradeSubmission(sid, { grade, feedback: { general: '' } });
-    await load();
+    await load(pagination.page || 1);
+  };
+
+  useEffect(() => {
+    // If assignment is route-bound, keep it fixed.
+    if (assignmentId) setSelectedAssignmentId(assignmentId);
+  }, [assignmentId]);
+
+  const handleModuleChange = (e) => {
+    setModuleId(e.target.value);
+    setSelectedAssignmentId('');
   };
 
   const getStatusColor = (status) => {
@@ -119,12 +156,40 @@ const GradeSubmissions = ({ assignmentId: assignmentIdProp }) => {
         <div className="card">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">
-              {assignmentId ? 'Assignment Submissions' : 'Recent Submissions'}
+              {assignmentId ? 'Assignment Submissions' : 'All Submissions'}
             </h3>
             <div className="text-sm text-gray-600">
-              {items.filter(s => s.status === 'submitted').length} pending • {items.filter(s => s.status === 'graded').length} graded
+              {pagination.total} total • {items.filter(s => s.status === 'submitted').length} pending on this page
             </div>
           </div>
+
+          {!assignmentId && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+              <input
+                type="text"
+                className="input-field"
+                placeholder="Search student name or email"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <select className="input-field" value={moduleId} onChange={handleModuleChange}>
+                <option value="">All modules</option>
+                {modules.map((module) => (
+                  <option key={module._id} value={module._id}>{module.title}</option>
+                ))}
+              </select>
+              <select
+                className="input-field"
+                value={selectedAssignmentId}
+                onChange={(e) => setSelectedAssignmentId(e.target.value)}
+              >
+                <option value="">All assignments</option>
+                {assignments.map((assignment) => (
+                  <option key={assignment._id} value={assignment._id}>{assignment.title}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {items.length === 0 ? (
             <div className="text-center py-12">
@@ -211,6 +276,30 @@ const GradeSubmissions = ({ assignmentId: assignmentIdProp }) => {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {!loading && pagination.totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4">
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => load((pagination.page || 1) - 1)}
+                disabled={!pagination.hasPrev}
+              >
+                Previous
+              </button>
+              <div className="text-sm text-gray-600">
+                Page {pagination.page} of {pagination.totalPages}
+              </div>
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => load((pagination.page || 1) + 1)}
+                disabled={!pagination.hasNext}
+              >
+                Next
+              </button>
             </div>
           )}
         </div>
